@@ -7,7 +7,7 @@ Knapsack = require("Knapsack")
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 720
 
 -- 帧率
-_FPS_ = 60
+_FPS_ = 144
 
 -- 创建游戏窗口
 CreateWindow(
@@ -18,6 +18,91 @@ CreateWindow(
         w = WINDOW_WIDTH,
         h = WINDOW_HEIGHT
     },
+    {}
+)
+
+-- 玩家位移定时器
+timer_player_move = Timer.AddTimer(
+    1000 / 60,
+    function()
+        if (not isHidden_player) and isMoveLeft_player then
+            flipmode_player = FLIP_HORIZONTAL
+            rect_player.x = rect_player.x - speed_player
+        end
+        if (not isHidden_player) and isMoveRight_player then
+            flipmode_player = FLIP_NONE
+            rect_player.x = rect_player.x + speed_player
+        end
+        rect_player.y = GetBaseHeight(rect_player)
+        if isJump_player then
+            if height_addition_list.index < #height_addition_list.values then
+                rect_player.y = rect_player.y + height_addition_list.values[height_addition_list.index]
+                height_addition_list.index = height_addition_list.index + 1
+            else
+                isJump_player = false
+                height_addition_list.index = 1
+        end
+    end
+    end,
+    {}
+)
+
+-- 乔治位移定时器
+timer_george_move = Timer.AddTimer(
+    1000 / 60,
+    function()
+        -- 在乔治默认状态下，根据当前乔治行动修改其位置
+        if isGeorgeIdle and states_george_idle.values[states_george_idle.index].state == "Walking" then
+            if states_george_idle.toward == "Right" then
+                rect_george.x = rect_george.x + speed_george
+                if rect_george.x > 5300 then 
+                    rect_george.x = 5300
+                    states_george_idle.toward = "Left"
+                    flipmode_george = FLIP_HORIZONTAL
+                end
+            else
+                rect_george.x = rect_george.x - speed_george
+                if rect_george.x < 4900 then 
+                    rect_george.x = 4900
+                    states_george_idle.toward = "Right"
+                    flipmode_george = FLIP_NONE
+                end
+            end
+        elseif (not isGeorgeIdle) and hp_george > 0 then
+            if 
+                rect_george.x >= (trigger_list.door_house.position._startX + trigger_list.door_house.position._endX) / 2 
+            then
+                rect_george.x = rect_george.x - speed_george
+            else
+                isGeorgeOutside = false
+            end
+        end
+
+        -- 乔治默认状态下行动状态切换计时
+        if states_george_idle.timer >= states_george_idle.values[states_george_idle.index].delay then
+            states_george_idle.index = states_george_idle.index % #states_george_idle.values + 1
+            states_george_idle.timer = 0
+        else
+            states_george_idle.timer = states_george_idle.timer + 1
+        end
+
+        rect_george.y = GetBaseHeight(rect_george)
+    end,
+    {}
+)
+
+-- 割草机位移定时器
+timer_grasscutter_move = Timer.AddTimer(
+    1000 / 60,
+    function()
+        if isMove_grasscutter then
+            if flipmode_grasscutter == FLIP_NONE then
+                rect_grasscutter.x = rect_grasscutter.x - speed_grasscutter
+            else
+                rect_grasscutter.x = rect_grasscutter.x + speed_grasscutter
+            end
+        end
+    end,
     {}
 )
 
@@ -124,6 +209,24 @@ timer_frontgrass = Timer.AddTimer(
     {}
 )
 
+-- 花盆动画定时器
+timer_flowerpot = Timer.AddTimer(
+    450,
+    function()
+        animation_Flowerpot.index = animation_Flowerpot.index % #animation_Flowerpot.clips + 1
+    end,
+    {}
+)
+
+-- 开关门动画定时器
+timer_irondoor = Timer.AddTimer(
+    250,
+    function()
+        animation_IronGate.index = animation_IronGate.index % #animation_IronGate.clips + 1
+    end,
+    {}
+)
+
 -- 提示文本颜色
 color_tips = {r = 255, g = 204, b = 51, a = 255}
 
@@ -173,7 +276,11 @@ image_Fountain_1 = LoadImage("Resource/Image/Fountain/1.png")
 image_Fountain_2 = LoadImage("Resource/Image/Fountain/2.png")
 image_Fountain_3 = LoadImage("Resource/Image/Fountain/3.png")
 image_Fountain_4 = LoadImage("Resource/Image/Fountain/4.png")
-image_IronGate = LoadImage("Resource/Image/IronGate/1.png")
+image_IronGateWall = LoadImage("Resource/Image/IronGate/Wall.png")
+image_IronGate_1 = LoadImage("Resource/Image/IronGate/1.png")
+image_IronGate_2 = LoadImage("Resource/Image/IronGate/2.png")
+image_IronGate_3 = LoadImage("Resource/Image/IronGate/3.png")
+image_IronGate_4 = LoadImage("Resource/Image/IronGate/4.png")
 image_FlowerBed_1 = LoadImage("Resource/Image/FlowerBed/1.png")
 image_FlowerBed_2 = LoadImage("Resource/Image/FlowerBed/2.png")
 image_FlowerBed_3 = LoadImage("Resource/Image/FlowerBed/3.png")
@@ -184,13 +291,23 @@ image_FrontGrass_3 = LoadImage("Resource/Image/FrontGrass/3.png")
 image_Ground = LoadImage("Resource/Image/Ground/level_1_ground_1.png")
 image_Sky = LoadImage("Resource/Image/Sky/1.png")
 image_Cloud = LoadImage("Resource/Image/Cloud/1.png")
+image_Flowerpot_1 = LoadImage("Resource/Image/Flowerpot/1.png")
+image_Flowerpot_2 = LoadImage("Resource/Image/Flowerpot/2.png")
+image_Flowerpot_3 = LoadImage("Resource/Image/Flowerpot/3.png")
+image_StreetLamp = LoadImage("Resource/Image/StreetLamp/1.png")
+image_Crow_1 = LoadImage("Resource/Image/Crow/1.png")
+image_Crow_2 = LoadImage("Resource/Image/Crow/2.png")
+image_Crow_3 = LoadImage("Resource/Image/Crow/3.png")
+image_Crow_4 = LoadImage("Resource/Image/Crow/4.png")
+image_Crow_5 = LoadImage("Resource/Image/Crow/5.png")
 
 -- 生成图片纹理数据
-texture_IronGate = CreateTexture(image_IronGate)
+texture_IronGateWall = CreateTexture(image_IronGateWall)
 texture_Shadow = CreateTexture(image_Shadow)
 texture_Ground = CreateTexture(image_Ground)
 texture_Sky = CreateTexture(image_Sky)
 texture_Cloud = CreateTexture(image_Cloud)
+texture_StreetLamp = CreateTexture(image_StreetLamp)
 
 -- 设置阴影图片透明度
 SetTextureAlpha(texture_Shadow, 200)
@@ -204,12 +321,16 @@ width_image_Haystack, height_image_Haystack = GetImageSize(image_Haystack_1)
 width_image_George, height_image_George = GetImageSize(image_George_Idle_1)
 width_image_Statue, height_image_Statue = GetImageSize(image_Statue_1)
 width_image_Fountain, height_image_Fountain = GetImageSize(image_Fountain_1)
-width_image_IronGate, height_image_IronGate = GetImageSize(image_IronGate)
+width_image_IronGateWall, height_image_IronGateWall = GetImageSize(image_IronGateWall)
 width_image_FlowerBed, height_image_FlowerBed = GetImageSize(image_FlowerBed_1)
 width_image_Shadow, height_image_Shadow = GetImageSize(image_Shadow)
 width_image_FrontGrass, height_image_FrontGrass = GetImageSize(image_FrontGrass_1)
 width_image_Sky, height_image_Sky = GetImageSize(image_Sky)
 width_image_Cloud, height_image_Cloud = GetImageSize(image_Cloud)
+width_image_Flowerpot, height_image_Flowerpot = GetImageSize(image_Flowerpot_1)
+width_image_StreetLamp, height_image_StreetLamp = GetImageSize(image_StreetLamp)
+width_image_Crow, height_image_Crow = GetImageSize(image_Crow_1)
+width_image_IronGate, height_image_IronGate = GetImageSize(image_IronGate_1)
 
 -- 背景图片动画
 animation_Background = {
@@ -303,6 +424,18 @@ animation_Haystack = {
     rect = {w = width_image_Haystack, h = height_image_Haystack}
 }
 
+-- 开关门动画
+animation_IronGate = {
+    index = 1,
+    clips = {
+        CreateTexture(image_IronGate_1),
+        CreateTexture(image_IronGate_2),
+        CreateTexture(image_IronGate_3),
+        CreateTexture(image_IronGate_4),
+    },
+    rect = {w = width_image_IronGate, h = height_image_IronGate}
+}
+
 -- 雕像动画
 animation_Statue = {
     index = 1,
@@ -352,6 +485,30 @@ animation_FrontGrass = {
     rect = {w = width_image_FrontGrass, h = height_image_FrontGrass}
 }
 
+-- 花盆动画
+animation_Flowerpot = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Flowerpot_1),
+        CreateTexture(image_Flowerpot_2),
+        CreateTexture(image_Flowerpot_3),
+    },
+    rect = {w = width_image_Flowerpot, h = height_image_Flowerpot}
+}
+
+-- 乌鸦动画
+animation_Crow = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Crow_1),
+        CreateTexture(image_Crow_2),
+        CreateTexture(image_Crow_3),
+        CreateTexture(image_Crow_4),
+        CreateTexture(image_Crow_5),
+    },
+    rect = {w = width_image_Crow, h = height_image_Crow}
+}
+
 -- 默认状态下乔治行动状态列表
 states_george_idle = {
     index = 1,
@@ -364,11 +521,11 @@ states_george_idle = {
 for i = 1, 50 do
     table.insert(states_george_idle.values, {
         state = "Walking",
-        delay = math.random(90, 200)
+        delay = math.random(180, 400)
     })
     table.insert(states_george_idle.values, {
         state = "Working",
-        delay = math.random(120, 240)
+        delay = math.random(240, 480)
     })
 end
 
@@ -405,8 +562,8 @@ rect_cloud_cut_2 = {
 
 -- 玩家定位矩形
 rect_player = {
-    -- x = 200,
-    x = 4540,
+    x = 200,
+    -- x = 3430,
     y = 0,
     w = width_image_Player,
     h = height_image_Player
@@ -604,11 +761,17 @@ isHidden_player = false
 -- 玩家是否在室外
 isPlayerOutside = true
 
+-- 乔治是否在室外
+isGeorgeOutside = true
+
 -- 乔治是否处于默认状态
 isGeorgeIdle = true
 
 -- 干草垛是否倒下
 isHaystackLaid = false
+
+-- 乌鸦是否飞起
+isCrowFlew = false
 
 -- 玩家背包是否显示
 isShowingKnapsack = false
@@ -624,6 +787,9 @@ isBoltDropped = false
 
 -- 玩家脚底阴影缩放比率
 ratio_shadow = 1
+
+-- 铁门是否打开
+isIronGateOpen = true
 
 -- 获取当前玩家位置的基础高度
 function GetBaseHeight(rect)
@@ -760,17 +926,25 @@ while true do
             or _event == EVENT_KEYDOWN_RIGHTCTRL
         then
             index_holding = index_holding % Knapsack.GetMaxSpace() + 1
+        elseif _event == EVENT_KEYDOWN_ENTER then
+            isIronGateOpen = not isIronGateOpen
         elseif _event == EVENT_KEYDOWN_C then
+            -- 如果乔治生命值低于50%，乔治将反击玩家导致玩家跌倒
+            if hp_george < 0.5 * hp_george then
+
+---------------------------------------------------------------------------------------------------------
+            
+            end
             -- 若玩家位于乔治身边且面向乔治按下C键，则对乔治造成伤害
             if 
                 math.abs(rect_player.x - rect_george.x) <= 50 
                 and (
                     (rect_player.x < rect_george.x and flipmode_player == FLIP_NONE)
                     or (rect_player.x > rect_george.x and flipmode_player == FLIP_HORIZONTAL)
-                ) 
+                )
             then
                 isGeorgeIdle = false
-                speed_george = speed_player
+                speed_george = speed_player - 0.2
                 hp_george = hp_george - (Knapsack.GetItem(index_holding).damage or damage_base_player)
             end
         end
@@ -778,64 +952,15 @@ while true do
         trigger_handler(_event)
     end
     
-    if (not isHidden_player) and isMoveLeft_player then
-        flipmode_player = FLIP_HORIZONTAL
-        rect_player.x = rect_player.x - speed_player
-    end
-    if (not isHidden_player) and isMoveRight_player then
-        flipmode_player = FLIP_NONE
-        rect_player.x = rect_player.x + speed_player
-    end
-    
-    rect_player.y = GetBaseHeight(rect_player)
-    if isJump_player then
-        if height_addition_list.index < #height_addition_list.values then
-            rect_player.y = rect_player.y + height_addition_list.values[height_addition_list.index]
-            height_addition_list.index = height_addition_list.index + 1
-        else
-            isJump_player = false
-            height_addition_list.index = 1
-        end
-    end
-    
     if rect_player.x < 0 then rect_player.x = 0 end
     if rect_player.x + rect_player.w > rect_background.x + rect_background.w then
         rect_player.x = rect_background.x + rect_background.w - rect_player.w
     end
     
-    -- 在乔治默认状态下，根据当前乔治行动修改其位置
-        if isGeorgeIdle and states_george_idle.values[states_george_idle.index].state == "Walking" then
-            if states_george_idle.toward == "Right" then
-                rect_george.x = rect_george.x + speed_george
-                if rect_george.x > 5300 then 
-                    rect_george.x = 5300
-                    states_george_idle.toward = "Left"
-                    flipmode_george = FLIP_HORIZONTAL
-                end
-            else
-                rect_george.x = rect_george.x - speed_george
-                if rect_george.x < 4900 then 
-                    rect_george.x = 4900
-                    states_george_idle.toward = "Right"
-                    flipmode_george = FLIP_NONE
-                end
-            end
-        end
-
     rect_viewport.x = rect_player.x + rect_player.w / 2 - rect_viewport.w / 2
     if rect_viewport.x < 0 then rect_viewport.x = 0 end
     if rect_viewport.x + rect_viewport.w > rect_background.x + rect_background.w then
         rect_viewport.x = rect_background.x + rect_background.w - rect_viewport.w
-    end
-
-    rect_george.y = GetBaseHeight(rect_george)
-
-    if isMove_grasscutter then
-        if flipmode_grasscutter == FLIP_NONE then
-            rect_grasscutter.x = rect_grasscutter.x - speed_grasscutter
-        else
-            rect_grasscutter.x = rect_grasscutter.x + speed_grasscutter
-        end
     end
     
     -- 如果玩家躲入草丛的次数为5次
@@ -864,12 +989,18 @@ while true do
         )
     end
 
-    -- 乔治默认状态下行动状态切换计时
-    if states_george_idle.timer >= states_george_idle.values[states_george_idle.index].delay then
-        states_george_idle.index = states_george_idle.index % #states_george_idle.values + 1
-        states_george_idle.timer = 0
-    else
-        states_george_idle.timer = states_george_idle.timer + 1
+    -- 如果干草堆完全倒下
+    if (not isCrowFlew) and animation_Haystack.index == #animation_Haystack.clips then
+        isCrowFlew = true
+        timer_crow_fly = Timer.AddTimer(
+            150,
+            function()
+                if animation_Crow.index < #animation_Crow.clips + 1 then
+                    animation_Crow.index = animation_Crow.index + 1
+                end
+            end,
+            {}
+        )
     end
 
     -- 绘制天空图片
@@ -896,7 +1027,7 @@ while true do
         rect_cloud_cut_2,
         {
             x = 0,
-            y = 0,
+            y = -14,
             w = rect_cloud_cut_2.w,
             h = rect_cloud_cut_2.h
         }
@@ -906,21 +1037,9 @@ while true do
         rect_cloud_cut_1,
         {
             x = rect_cloud_cut_2.w,
-            y = 0,
+            y = -14,
             w = rect_cloud_cut_1.w,
             h = rect_cloud_cut_1.h
-        }
-    )
-
-    -- 绘制背景图片
-    CopyReshapeTexture(
-        animation_Background.clips[animation_Background.index],
-        rect_viewport,
-        {
-            x = 0,
-            y = 0,
-            w = rect_viewport.w,
-            h = rect_viewport.h
         }
     )
 
@@ -936,6 +1055,42 @@ while true do
         }
     )
 
+    -- 绘制背景图片
+    CopyReshapeTexture(
+        animation_Background.clips[animation_Background.index],
+        rect_viewport,
+        {
+            x = 0,
+            y = 0,
+            w = rect_viewport.w,
+            h = rect_viewport.h
+        }
+    )
+
+    -- 如果乌鸦动画未播放完毕则绘制乌鸦图片
+    if animation_Crow.index <= #animation_Crow.clips then
+        CopyTexture(
+            animation_Crow.clips[animation_Crow.index],
+            {
+                x = 2355 - rect_viewport.x,
+                y = 45 - rect_viewport.y,
+                w = animation_Crow.rect.w,
+                h = animation_Crow.rect.h
+            }
+        )
+    end 
+
+    -- 绘制花盆
+    CopyTexture(
+        animation_Flowerpot.clips[animation_Flowerpot.index],
+        {
+            x = 3060 - rect_viewport.x,
+            y = 530 - rect_viewport.y,
+            w = animation_Flowerpot.rect.w,
+            h = animation_Flowerpot.rect.h
+        }
+    )
+    
     -- 绘制干草堆部分
     CopyTexture(
         animation_Haystack.clips[animation_Haystack.index],
@@ -947,7 +1102,7 @@ while true do
         }
     )
 
-    -- 显示玩家脚底阴影
+    -- 渲染玩家脚底阴影
     if not isHidden_player then
         if isJump_player then
             ratio_shadow = 0.7
@@ -960,6 +1115,22 @@ while true do
                 x = rect_player.x + rect_player.w / 2 - width_image_Shadow * ratio_shadow / 2 - rect_viewport.x,
                 y = GetBaseHeight(rect_player) + rect_player.h - 15 - rect_viewport.y,
                 w = width_image_Shadow * ratio_shadow,
+                h = height_image_Shadow
+            }
+        )
+    end
+
+    -- 渲染乔治脚底阴影
+    if 
+        (isPlayerOutside and isGeorgeOutside) 
+        and ((not isPlayerOutside) and (not isGeorgeOutside)) 
+    then
+        CopyTexture(
+            texture_Shadow,
+            {
+                x = rect_george.x + rect_george.w / 2 - width_image_Shadow / 2 - 5 - rect_viewport.x,
+                y = GetBaseHeight(rect_george) + rect_george.h - 15 - rect_viewport.y,
+                w = width_image_Shadow,
                 h = height_image_Shadow
             }
         )
@@ -978,6 +1149,19 @@ while true do
         )
     end
     
+    -- 如果铁门打开
+    if isIronGateOpen then
+        CopyTexture(
+            animation_IronGate.clips[4],
+            {
+                x = 3684 - rect_viewport.x,
+                y = 515 - rect_viewport.y,
+                w = animation_IronGate.rect.w,
+                h = animation_IronGate.rect.h
+            }
+        )
+    end
+
     -- 显示玩家立绘
     if isHidden_player then
         CopyTexture(
@@ -1041,47 +1225,47 @@ while true do
         end
     end
 
-    -- 显示乔治默认状态立绘
-    if isGeorgeIdle then
-        CopyRotateTexture(
-            animation_GeorgeIdle.clips[animation_GeorgeIdle.index],
-            0,
-            {
-                x = rect_george.x + rect_george.w / 2,
-                y = rect_george.y + rect_george.h / 2
-            },
-            {flipmode_george},
-            {
-                x = rect_george.x - rect_viewport.x,
-                y = rect_george.y - rect_viewport.y,
-                w = rect_george.w,
-                h = rect_george.h
-            }
-        )
-    -- 显示乔治奔跑状态立绘
-    elseif (not isGeorgeIdle) and hp_george > 0 then
-        if rect_george.x >= (trigger_list.door_house.position._startX + trigger_list.door_house.position._endX) / 2 then
-            rect_george.x = rect_george.x - speed_george
-        end
-        CopyRotateTexture(
-            animation_GeorgeRun.clips[animation_GeorgeRun.index],
-            0,
-            {
-                x = rect_george.x + rect_george.w / 2,
-                y = rect_george.y + rect_george.h / 2
-            },
-            {FLIP_HORIZONTAL},
-            {
-                x = rect_george.x - rect_viewport.x,
-                y = rect_george.y - rect_viewport.y,
-                w = rect_george.w,
-                h = rect_george.h
-            }
-        )
+    
     -- 显示乔治死亡状态立绘
-    else
+    if hp_george <= 0 then
         print("die")
-    end 
+    -- 显示乔治默认状态立绘
+    elseif isGeorgeOutside then
+        if isGeorgeIdle then
+            CopyRotateTexture(
+                animation_GeorgeIdle.clips[animation_GeorgeIdle.index],
+                0,
+                {
+                    x = rect_george.x + rect_george.w / 2,
+                    y = rect_george.y + rect_george.h / 2
+                },
+                {flipmode_george},
+                {
+                    x = rect_george.x - rect_viewport.x,
+                    y = rect_george.y - rect_viewport.y,
+                    w = rect_george.w,
+                    h = rect_george.h
+                }
+            )
+        -- 显示乔治奔跑状态立绘
+        elseif (not isGeorgeIdle) and hp_george > 0 then
+            CopyRotateTexture(
+                animation_GeorgeRun.clips[animation_GeorgeRun.index],
+                0,
+                {
+                    x = rect_george.x + rect_george.w / 2,
+                    y = rect_george.y + rect_george.h / 2
+                },
+                {FLIP_HORIZONTAL},
+                {
+                    x = rect_george.x - rect_viewport.x,
+                    y = rect_george.y - rect_viewport.y,
+                    w = rect_george.w,
+                    h = rect_george.h
+                }
+            )
+        end
+    end
 
     -- 如果正在躲避稍后绘制前草动画
     if isHidden_player then
@@ -1131,14 +1315,27 @@ while true do
         end
     end
 
-    -- 绘制铁门
+    -- 如果没有开门绘制铁门动画
+    if not isIronGateOpen then
+        CopyTexture(
+            animation_IronGate.clips[animation_IronGate.index],
+            {
+                x = 3684 - rect_viewport.x,
+                y = 515 - rect_viewport.y,
+                w = animation_IronGate.rect.w,
+                h = animation_IronGate.rect.h
+            }
+        )
+    end
+
+    -- 绘制铁门墙
     CopyTexture(
-        texture_IronGate,
+        texture_IronGateWall,
         {
             x = 3730 - rect_viewport.x,
             y = 555 - rect_viewport.y,
-            w = width_image_IronGate,
-            h = height_image_IronGate
+            w = width_image_IronGateWall,
+            h = height_image_IronGateWall
         }
     )
 
@@ -1210,6 +1407,18 @@ while true do
             }
     )
     end
+
+    -- 绘制路灯图片
+    CopyReshapeTexture(
+        texture_StreetLamp,
+        rect_viewport,
+        {
+            x = 0,
+            y = rect_viewport.h - height_image_StreetLamp + 60,
+            w = rect_viewport.w,
+            h = height_image_StreetLamp
+        }
+    )
 
     UpdateWindow()
     
