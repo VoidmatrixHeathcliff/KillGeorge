@@ -33,16 +33,29 @@ timer_player_move = Timer.AddTimer(
             flipmode_player = FLIP_NONE
             rect_player.x = rect_player.x + speed_player
         end
-        rect_player.y = GetBaseHeight(rect_player)
-        if isJump_player then
-            if height_addition_list.index < #height_addition_list.values then
-                rect_player.y = rect_player.y + height_addition_list.values[height_addition_list.index]
-                height_addition_list.index = height_addition_list.index + 1
-            else
-                isJump_player = false
-                height_addition_list.index = 1
+        if isMoveUp_player then
+            rect_player.y = rect_player.y - speed_player
         end
-    end
+        if isMoveDown_player then
+            rect_player.y = rect_player.y + speed_player
+        end
+        -- 对室外玩家进行y轴坐标修正
+        if isPlayerOutside then
+            rect_player.y = GetBaseHeight(rect_player)
+            if isJump_player then
+                if height_addition_list.index < #height_addition_list.values then
+                    rect_player.y = rect_player.y + height_addition_list.values[height_addition_list.index]
+                    height_addition_list.index = height_addition_list.index + 1
+                else
+                    isJump_player = false
+                    height_addition_list.index = 1
+                end
+            end
+        -- 对室内玩家进行x和y轴坐标修正
+        else
+
+        end
+        
     end,
     {}
 )
@@ -227,6 +240,15 @@ timer_irondoor = Timer.AddTimer(
     {}
 )
 
+-- 室内灯光动画定时器
+timer_masklight = Timer.AddTimer(
+    500,
+    function()
+        animation_Masklight.index = animation_Masklight.index % #animation_Masklight.clips + 1
+    end,
+    {}
+)
+
 -- 提示文本颜色
 color_tips = {r = 255, g = 204, b = 51, a = 255}
 
@@ -300,6 +322,12 @@ image_Crow_2 = LoadImage("Resource/Image/Crow/2.png")
 image_Crow_3 = LoadImage("Resource/Image/Crow/3.png")
 image_Crow_4 = LoadImage("Resource/Image/Crow/4.png")
 image_Crow_5 = LoadImage("Resource/Image/Crow/5.png")
+image_Background_indoor = LoadImage("Resource/Image/Background/level_1_bg_12.png")
+image_Mask = LoadImage("Resource/Image/Mask/1.png")
+image_MaskLight = LoadImage("Resource/Image/Mask/2.png")
+image_Stairs = LoadImage("Resource/Image/Stairs/1.png")
+image_IndoorDoor = LoadImage("Resource/Image/IndoorDoor/1.png")
+image_OilBarrel = LoadImage("Resource/Image/OilBarrel/1.png")
 
 -- 生成图片纹理数据
 texture_IronGateWall = CreateTexture(image_IronGateWall)
@@ -308,9 +336,12 @@ texture_Ground = CreateTexture(image_Ground)
 texture_Sky = CreateTexture(image_Sky)
 texture_Cloud = CreateTexture(image_Cloud)
 texture_StreetLamp = CreateTexture(image_StreetLamp)
-
--- 设置阴影图片透明度
-SetTextureAlpha(texture_Shadow, 200)
+texture_BackgroundIndoor = CreateTexture(image_Background_indoor)
+texture_Mask = CreateTexture(image_Mask)
+texture_MaskLight = CreateTexture(image_MaskLight)
+texture_Stairs = CreateTexture(image_Stairs)
+texture_IndoorDoor = CreateTexture(image_IndoorDoor)
+texture_OilBarrel = CreateTexture(image_OilBarrel)
 
 -- 图片尺寸
 width_image_Background, height_image_Background = GetImageSize(image_Background_1)
@@ -331,6 +362,12 @@ width_image_Flowerpot, height_image_Flowerpot = GetImageSize(image_Flowerpot_1)
 width_image_StreetLamp, height_image_StreetLamp = GetImageSize(image_StreetLamp)
 width_image_Crow, height_image_Crow = GetImageSize(image_Crow_1)
 width_image_IronGate, height_image_IronGate = GetImageSize(image_IronGate_1)
+width_image_BackgroundIndoor, height_image_BackgroundIndoor = GetImageSize(image_Background_indoor)
+width_image_Mask, height_image_Mask = GetImageSize(image_Mask)
+width_image_MaskLight, height_image_MaskLight = GetImageSize(image_MaskLight)
+width_image_Stairs, height_image_Stairs = GetImageSize(image_Stairs)
+width_image_IndoorDoor, height_image_IndoorDoor = GetImageSize(image_IndoorDoor)
+width_image_OilBarrel, height_image_OilBarrel = GetImageSize(image_OilBarrel)
 
 -- 背景图片动画
 animation_Background = {
@@ -349,6 +386,45 @@ animation_Background = {
         CreateTexture(image_Background_11),
     },
     rect = {w = width_image_Background, h = height_image_Background}
+}
+
+-- 室内灯光闪烁动画
+animation_Masklight = {
+    index = 1,
+    texture = CreateTexture(image_MaskLight),
+    clips = {
+        true, true, false, true, false, true, true,         -- K
+        true, true, true, true, true, true,                 -- 分隔
+        true, false, true,                                  -- I
+        true, true, true, true, true, true,                 -- 分隔
+        true, false, true, true, false, true, false, true,  -- L
+        true, true, true, true, true, true,                 -- 分隔
+        true, false, true, true, false, true, false, true,  -- L
+        true, true, true, true, true, true,                 -- 分隔
+        true, true, false, true, false, true, false, true, true, false, true,   -- /
+        true, true, true, true, true, true,                 -- 分隔
+        true, true, false, true, true,                      -- M
+        true, true, true, true, true, true,                 -- 分隔
+        true, true, true,                                   -- E
+        true, true, true, true, true, true,                 -- 分隔
+        true, true, false, true, false, true, false, true, true, false, true,   -- /
+        true, true, true, true, true, true,                 -- 分隔
+        true, false, true, false, true,                     -- S
+        true, true, true, true, true, true,                 -- 分隔
+        true, false, true, true,                            -- A
+        true, true, true, true, true, true,                 -- 分隔
+        true, false, true, false, true, false, true, true,  -- V
+        true, true, true, true, true, true,                 -- 分隔
+        true, true, true,                                   -- E
+        true, true, true, true, true, true,                 -- 分隔
+        true, true, false, true, false, true, false, true, true, false, true,   -- /
+        true, true, true, true, true, true,                 -- 分隔
+        true, true, false, true, true,                      -- M
+        true, true, true, true, true, true,                 -- 分隔
+        true, true, true,                                   -- E
+        true, true, true, true, true, true,                 -- 分隔
+        true, true, false, true, false, true, false, true, true, false, true,   -- /
+    }
 }
 
 -- 割草机运动动画
@@ -639,7 +715,43 @@ trigger_list = {
             handler = function(event)
                 -- 处理进门
                 if event == EVENT_KEYDOWN_Z then
-                    Knapsack.AddItem({name = "Battery", damage = damage_base_player})
+                    isPlayerOutside = false
+                    rect_player.x = WINDOW_WIDTH / 2 - rect_player.w / 2
+                    rect_player.y = 600
+                    height_addition_list.index = 1
+                    isJump_player = false
+                -- 判断当前玩家是否手持锁栓，手持则锁门
+                elseif event == EVENT_KEYDOWN_C then
+                    print("locked!")
+                end
+            end
+        },
+        -- 房间内大门
+        indoor_door = {
+            tips = {
+                {
+                    text = "Z：出门",
+                    condition = function() return true end
+                },
+                {
+                    text = "X：锁门",
+                    condition = function()
+                        return Knapsack.GetItem(index_holding).name == "Bolt"
+                    end
+                }
+            },
+            position = {
+                isOutside = false,
+                _startX = WINDOW_WIDTH / 2 - width_image_IndoorDoor / 2,
+                _endX = WINDOW_WIDTH / 2 + width_image_IndoorDoor / 2,
+                _startY = WINDOW_HEIGHT - height_image_IndoorDoor,
+                _endY = WINDOW_HEIGHT
+            },
+            handler = function(event)
+                -- 处理出门
+                if event == EVENT_KEYDOWN_Z then
+                    isPlayerOutside = true
+                    rect_player.x = 480
                 -- 判断当前玩家是否手持锁栓，手持则锁门
                 elseif event == EVENT_KEYDOWN_C then
                     print("locked!")
@@ -745,12 +857,16 @@ speed_george = 1
 
 -- 玩家移动方向
 isMoveLeft_player, isMoveRight_player = false, false
+isMoveUp_player, isMoveDown_player = false, false
 
 -- 割草机移动速度
 speed_grasscutter = 10
 
 -- 割草机是否启动
 isMove_grasscutter = false
+
+-- 油桶是否被拾取
+isGot_OilBarrel = false
 
 -- 玩家是否正在跳跃
 isJump_player = false
@@ -883,7 +999,7 @@ while true do
 
     local _start = GetInitTime()
     
-    SetDrawColor({r = 200, g = 200, b = 200, a = 255})
+    SetDrawColor({r = 0, g = 0, b = 0, a = 255})
     ClearWindow()
     
     Timer.Update()
@@ -916,8 +1032,33 @@ while true do
             _event == EVENT_KEYDOWN_UP
             or _event == EVENT_KEYDOWN_W
         then
-            if (not isJump_player) and (not isHidden_player) then
-                isJump_player = true
+            if isPlayerOutside then
+                if (not isJump_player) and (not isHidden_player) then
+                    isJump_player = true
+                end
+            else
+                isMoveUp_player = true
+            end
+        elseif
+            _event == EVENT_KEYUP_UP
+            or _event == EVENT_KEYUP_W
+        then
+            if not isPlayerOutside then
+                isMoveUp_player = false
+            end
+        elseif 
+            _event == EVENT_KEYDOWN_DOWN
+            or _event == EVENT_KEYDOWN_S
+        then
+            if not isPlayerOutside then
+                isMoveDown_player = true
+            end
+        elseif 
+            _event == EVENT_KEYUP_DOWN
+            or _event == EVENT_KEYUP_S
+        then
+            if not isPlayerOutside then
+                isMoveDown_player = false
             end
         elseif _event == EVENT_KEYDOWN_SPACE then
             isShowingKnapsack = not isShowingKnapsack
@@ -952,15 +1093,17 @@ while true do
         trigger_handler(_event)
     end
     
-    if rect_player.x < 0 then rect_player.x = 0 end
-    if rect_player.x + rect_player.w > rect_background.x + rect_background.w then
-        rect_player.x = rect_background.x + rect_background.w - rect_player.w
-    end
+    if isPlayerOutside then
+        if rect_player.x < 0 then rect_player.x = 0 end
+        if rect_player.x + rect_player.w > rect_background.x + rect_background.w then
+            rect_player.x = rect_background.x + rect_background.w - rect_player.w
+        end
     
-    rect_viewport.x = rect_player.x + rect_player.w / 2 - rect_viewport.w / 2
-    if rect_viewport.x < 0 then rect_viewport.x = 0 end
-    if rect_viewport.x + rect_viewport.w > rect_background.x + rect_background.w then
-        rect_viewport.x = rect_background.x + rect_background.w - rect_viewport.w
+        rect_viewport.x = rect_player.x + rect_player.w / 2 - rect_viewport.w / 2
+        if rect_viewport.x < 0 then rect_viewport.x = 0 end
+        if rect_viewport.x + rect_viewport.w > rect_background.x + rect_background.w then
+            rect_viewport.x = rect_background.x + rect_background.w - rect_viewport.w
+        end
     end
     
     -- 如果玩家躲入草丛的次数为5次
@@ -1004,47 +1147,52 @@ while true do
     end
 
     -- 绘制天空图片
-    CopyReshapeTexture(
-        texture_Sky,
-        rect_viewport,
-        {
-            x = 0,
-            y = 0,
-            w = rect_viewport.w,
-            h = height_image_Sky
-        }
-    )
+    if isPlayerOutside then
+        CopyReshapeTexture(
+            texture_Sky,
+            rect_viewport,
+            {
+                x = 0,
+                y = 0,
+                w = rect_viewport.w,
+                h = height_image_Sky
+            }
+        )
+    end
 
     -- 绘制云图片
-    rect_cloud_cut_2 = {
-        x = rect_cloud_cut_1.w,
-        y = 0,
-        w = width_image_Cloud - rect_cloud_cut_1.w,
-        h = height_image_Cloud
-    }
-    CopyReshapeTexture(
-        texture_Cloud,
-        rect_cloud_cut_2,
-        {
-            x = 0,
-            y = -14,
-            w = rect_cloud_cut_2.w,
-            h = rect_cloud_cut_2.h
+    if isPlayerOutside then
+        rect_cloud_cut_2 = {
+            x = rect_cloud_cut_1.w,
+            y = 0,
+            w = width_image_Cloud - rect_cloud_cut_1.w,
+            h = height_image_Cloud
         }
-    )
-    CopyReshapeTexture(
-        texture_Cloud,
-        rect_cloud_cut_1,
-        {
-            x = rect_cloud_cut_2.w,
-            y = -14,
-            w = rect_cloud_cut_1.w,
-            h = rect_cloud_cut_1.h
-        }
-    )
+        CopyReshapeTexture(
+            texture_Cloud,
+            rect_cloud_cut_2,
+            {
+                x = 0,
+                y = -14,
+                w = rect_cloud_cut_2.w,
+                h = rect_cloud_cut_2.h
+            }
+        )
+        CopyReshapeTexture(
+            texture_Cloud,
+            rect_cloud_cut_1,
+            {
+                x = rect_cloud_cut_2.w,
+                y = -14,
+                w = rect_cloud_cut_1.w,
+                h = rect_cloud_cut_1.h
+            }
+        )
+    end
 
     -- 绘制地面图片
-    CopyReshapeTexture(
+    if isPlayerOutside then
+        CopyReshapeTexture(
         texture_Ground,
         rect_viewport,
         {
@@ -1054,77 +1202,149 @@ while true do
             h = height_image_Ground
         }
     )
+    end
 
     -- 绘制背景图片
-    CopyReshapeTexture(
-        animation_Background.clips[animation_Background.index],
-        rect_viewport,
+    if isPlayerOutside then 
+        CopyReshapeTexture(
+            animation_Background.clips[animation_Background.index],
+            rect_viewport,
+            {
+                x = 0,
+                y = 0,
+                w = rect_viewport.w,
+                h = rect_viewport.h
+            }
+        )
+    else
+        CopyTexture(
+        texture_BackgroundIndoor,
         {
-            x = 0,
-            y = 0,
-            w = rect_viewport.w,
-            h = rect_viewport.h
+            x = WINDOW_WIDTH / 2 - width_image_BackgroundIndoor / 2,
+            y = WINDOW_HEIGHT / 2 - height_image_BackgroundIndoor / 2,
+            w = width_image_BackgroundIndoor,
+            h = height_image_BackgroundIndoor
         }
     )
+    end
+    
+    -- ***********************************************************
 
-    -- 如果乌鸦动画未播放完毕则绘制乌鸦图片
-    if animation_Crow.index <= #animation_Crow.clips then
+    -- isPlayerOutside = false
+
+    -- ***********************************************************
+
+    -- 绘制楼梯图片
+    if not isPlayerOutside then
         CopyTexture(
-            animation_Crow.clips[animation_Crow.index],
+            texture_Stairs,
             {
-                x = 2355 - rect_viewport.x,
-                y = 45 - rect_viewport.y,
-                w = animation_Crow.rect.w,
-                h = animation_Crow.rect.h
+                x = WINDOW_WIDTH / 2 - width_image_Stairs / 2,
+                y = 100,
+                w = width_image_Stairs,
+                h = height_image_Stairs
             }
         )
     end 
 
-    -- 绘制花盆
-    CopyTexture(
-        animation_Flowerpot.clips[animation_Flowerpot.index],
-        {
-            x = 3060 - rect_viewport.x,
-            y = 530 - rect_viewport.y,
-            w = animation_Flowerpot.rect.w,
-            h = animation_Flowerpot.rect.h
-        }
-    )
-    
-    -- 绘制干草堆部分
-    CopyTexture(
-        animation_Haystack.clips[animation_Haystack.index],
-        {
-            x = 2725 - rect_viewport.x,
-            y = 500 - rect_viewport.y,
-            w = animation_Haystack.rect.w,
-            h = animation_Haystack.rect.h
-        }
-    )
-
-    -- 渲染玩家脚底阴影
-    if not isHidden_player then
-        if isJump_player then
-            ratio_shadow = 0.7
-        else
-            ratio_shadow = 1
-        end
+    -- 绘制灯光图片
+    if 
+        (not isPlayerOutside) 
+        and animation_Masklight.clips[animation_Masklight.index]
+    then
         CopyTexture(
-            texture_Shadow,
+            texture_MaskLight,
             {
-                x = rect_player.x + rect_player.w / 2 - width_image_Shadow * ratio_shadow / 2 - rect_viewport.x,
-                y = GetBaseHeight(rect_player) + rect_player.h - 15 - rect_viewport.y,
-                w = width_image_Shadow * ratio_shadow,
-                h = height_image_Shadow
+                x = 865,
+                y = 215,
+                w = width_image_MaskLight,
+                h = height_image_MaskLight
             }
         )
     end
 
+    -- 如果乌鸦动画未播放完毕则绘制乌鸦图片
+    if isPlayerOutside then
+        if animation_Crow.index <= #animation_Crow.clips then
+            CopyTexture(
+                animation_Crow.clips[animation_Crow.index],
+                {
+                    x = 2355 - rect_viewport.x,
+                    y = 45 - rect_viewport.y,
+                    w = animation_Crow.rect.w,
+                    h = animation_Crow.rect.h
+                }
+            )
+        end
+    end 
+
+    -- 绘制花盆
+    if isPlayerOutside then
+        CopyTexture(
+            animation_Flowerpot.clips[animation_Flowerpot.index],
+            {
+                x = 3060 - rect_viewport.x,
+                y = 530 - rect_viewport.y,
+                w = animation_Flowerpot.rect.w,
+                h = animation_Flowerpot.rect.h
+            }
+        )
+    end
+    
+    -- 绘制干草堆部分
+    if isPlayerOutside then
+        CopyTexture(
+            animation_Haystack.clips[animation_Haystack.index],
+            {
+                x = 2725 - rect_viewport.x,
+                y = 500 - rect_viewport.y,
+                w = animation_Haystack.rect.w,
+                h = animation_Haystack.rect.h
+            }
+        )
+    end
+
+    -- 渲染玩家脚底阴影
+    if isPlayerOutside then
+        -- 设置脚底阴影图片透明度
+        SetTextureAlpha(texture_Shadow, 150)
+        if not isHidden_player then
+            if isJump_player then
+                ratio_shadow = 0.7
+            else
+                ratio_shadow = 1
+            end
+            CopyTexture(
+                texture_Shadow,
+                {
+                    x = rect_player.x + rect_player.w / 2 - width_image_Shadow * ratio_shadow / 2 - rect_viewport.x,
+                    y = GetBaseHeight(rect_player) + rect_player.h - 15 - rect_viewport.y,
+                    w = width_image_Shadow * ratio_shadow,
+                    h = height_image_Shadow
+                }
+            )
+        end
+    else
+        -- 设置脚底阴影图片透明度
+        SetTextureAlpha(texture_Shadow, 50)
+        CopyTexture(
+            texture_Shadow,
+            {
+                x = rect_player.x + rect_player.w / 2 - width_image_Shadow / 2 - rect_viewport.x,
+                y = rect_player.y + rect_player.h - 15,
+                w = width_image_Shadow,
+                h = height_image_Shadow
+            }
+        )
+    end
+    
+
     -- 渲染乔治脚底阴影
-    if 
-        (isPlayerOutside and isGeorgeOutside) 
-        and ((not isPlayerOutside) and (not isGeorgeOutside)) 
-    then
+    if isPlayerOutside then
+        if 
+            (isPlayerOutside and isGeorgeOutside) 
+            and ((not isPlayerOutside) and (not isGeorgeOutside)) 
+        then
         CopyTexture(
             texture_Shadow,
             {
@@ -1135,29 +1355,47 @@ while true do
             }
         )
     end
+    end
     
     -- 如果没有躲避优先绘制前草动画
-    if not isHidden_player then
-        CopyTexture(
-            animation_FrontGrass.clips[animation_FrontGrass.index],
-            {
-                x = 1870 - rect_viewport.x,
-                y = 438 - rect_viewport.y,
-                w = animation_FrontGrass.rect.w,
-                h = animation_FrontGrass.rect.h
-            }
-        )
+    if isPlayerOutside then
+        if not isHidden_player then
+            CopyTexture(
+                animation_FrontGrass.clips[animation_FrontGrass.index],
+                {
+                    x = 1870 - rect_viewport.x,
+                    y = 438 - rect_viewport.y,
+                    w = animation_FrontGrass.rect.w,
+                    h = animation_FrontGrass.rect.h
+                }
+            )
+        end
     end
     
     -- 如果铁门打开
-    if isIronGateOpen then
+    if isPlayerOutside then
+        if isIronGateOpen then
+            CopyTexture(
+                animation_IronGate.clips[4],
+                {
+                    x = 3684 - rect_viewport.x,
+                    y = 515 - rect_viewport.y,
+                    w = animation_IronGate.rect.w,
+                    h = animation_IronGate.rect.h
+                }
+            )
+        end
+    end
+
+    -- 绘制屋内油桶
+    if not isGot_OilBarrel then
         CopyTexture(
-            animation_IronGate.clips[4],
+            texture_OilBarrel,
             {
-                x = 3684 - rect_viewport.x,
-                y = 515 - rect_viewport.y,
-                w = animation_IronGate.rect.w,
-                h = animation_IronGate.rect.h
+                x = 950,
+                y = 315,
+                w = width_image_OilBarrel * 0.7,
+                h = height_image_OilBarrel * 0.7
             }
         )
     end
@@ -1165,7 +1403,7 @@ while true do
     -- 显示玩家立绘
     if isHidden_player then
         CopyTexture(
-            animation_PlayerIdle.clips[1],
+            animation_PlayerIdle.clips[animation_PlayerIdle.index],
             {
                 x = 1890 - rect_viewport.x,
                 y = 540 - rect_viewport.y,
@@ -1267,17 +1505,51 @@ while true do
         end
     end
 
-    -- 如果正在躲避稍后绘制前草动画
-    if isHidden_player then
+    -- 绘制屋内房门
+    if not isPlayerOutside then
         CopyTexture(
-            animation_FrontGrass.clips[animation_FrontGrass.index],
+            texture_IndoorDoor,
             {
-                x = 1870 - rect_viewport.x,
-                y = 438 - rect_viewport.y,
-                w = animation_FrontGrass.rect.w,
-                h = animation_FrontGrass.rect.h
+                x = WINDOW_WIDTH / 2 - width_image_IndoorDoor / 2,
+                y = WINDOW_HEIGHT - 50,
+                w = width_image_IndoorDoor,
+                h = height_image_IndoorDoor
             }
         )
+    end
+
+    -- 如果玩家处于室内则绘制光线遮罩
+    if not isPlayerOutside then
+        print("player:", rect_player.x, rect_player.y)
+        print("trigger:", trigger_list.indoor_door.position._startX, 
+            trigger_list.indoor_door.position._endX,
+            trigger_list.indoor_door.position._startY,
+            trigger_list.indoor_door.position._endY
+        )
+        CopyTexture(
+            texture_Mask,
+            {
+                x = WINDOW_WIDTH / 2 - width_image_Mask / 2,
+                y = WINDOW_HEIGHT / 2 - height_image_Mask / 2,
+                w = width_image_Mask,
+                h = height_image_Mask
+            }
+        )
+    end
+
+    -- 如果正在躲避稍后绘制前草动画
+    if isPlayerOutside then
+        if isHidden_player then
+            CopyTexture(
+                animation_FrontGrass.clips[animation_FrontGrass.index],
+                {
+                    x = 1870 - rect_viewport.x,
+                    y = 438 - rect_viewport.y,
+                    w = animation_FrontGrass.rect.w,
+                    h = animation_FrontGrass.rect.h
+                }
+            )
+        end
     end
 
     -- 如果显示玩家背包则渲染玩家背包
@@ -1316,20 +1588,23 @@ while true do
     end
 
     -- 如果没有开门绘制铁门动画
-    if not isIronGateOpen then
-        CopyTexture(
-            animation_IronGate.clips[animation_IronGate.index],
-            {
-                x = 3684 - rect_viewport.x,
-                y = 515 - rect_viewport.y,
-                w = animation_IronGate.rect.w,
-                h = animation_IronGate.rect.h
-            }
-        )
+    if isPlayerOutside then
+        if not isIronGateOpen then
+            CopyTexture(
+                animation_IronGate.clips[animation_IronGate.index],
+                {
+                    x = 3684 - rect_viewport.x,
+                    y = 515 - rect_viewport.y,
+                    w = animation_IronGate.rect.w,
+                    h = animation_IronGate.rect.h
+                }
+            )
+        end
     end
 
     -- 绘制铁门墙
-    CopyTexture(
+    if isPlayerOutside then
+        CopyTexture(
         texture_IronGateWall,
         {
             x = 3730 - rect_viewport.x,
@@ -1338,9 +1613,11 @@ while true do
             h = height_image_IronGateWall
         }
     )
+    end
 
     -- 绘制雕像
-    CopyTexture(
+    if isPlayerOutside then
+        CopyTexture(
         animation_Statue.clips[animation_Statue.index],
         {
             x = 4190 - rect_viewport.x,
@@ -1349,67 +1626,75 @@ while true do
             h = animation_Statue.rect.h
         }
     )
+    end
     
     -- 绘制喷泉
-    CopyTexture(
-        animation_Fountain.clips[animation_Fountain.index],
-        {
-            x = 4270 - rect_viewport.x,
-            y = 540 - rect_viewport.y,
-            w = animation_Fountain.rect.w,
-            h = animation_Fountain.rect.h
-        }
-    )
+    if isPlayerOutside then
+        CopyTexture(
+            animation_Fountain.clips[animation_Fountain.index],
+            {
+                x = 4270 - rect_viewport.x,
+                y = 540 - rect_viewport.y,
+                w = animation_Fountain.rect.w,
+                h = animation_Fountain.rect.h
+            }
+        )
+    end
 
     -- 绘制花圃
-    CopyTexture(
-        animation_FlowerBed.clips[animation_FlowerBed.index],
-        {
-            x = width_image_Background - width_image_FlowerBed - rect_viewport.x + 35,
-            y = height_image_Background - height_image_FlowerBed - rect_viewport.y + 5,
-            w = animation_FlowerBed.rect.w,
-            h = animation_FlowerBed.rect.h
-        }
-    )
+    if isPlayerOutside then
+        CopyTexture(
+            animation_FlowerBed.clips[animation_FlowerBed.index],
+            {
+                x = width_image_Background - width_image_FlowerBed - rect_viewport.x + 35,
+                y = height_image_Background - height_image_FlowerBed - rect_viewport.y + 5,
+                w = animation_FlowerBed.rect.w,
+                h = animation_FlowerBed.rect.h
+            }
+        )
+    end
 
     -- 如果割草机正在移动则渲染动态帧序列
-    if isMove_grasscutter then
-        CopyRotateTexture(
-            animation_GrassCutterRun.clips[animation_GrassCutterRun.index],
-            0,
-            {
-                x = rect_grasscutter.x + rect_grasscutter.w / 2,
-                y = rect_grasscutter.y + rect_grasscutter.h / 2
-            },
-            {flipmode_grasscutter},
-            {
-                x = rect_grasscutter.x - rect_viewport.x,
-                y = rect_grasscutter.y - rect_viewport.y,
-                w = animation_GrassCutterRun.rect.w,
-                h = animation_GrassCutterRun.rect.h
-            }
-    )
-    -- 否则渲染静态帧
-    else
-        CopyRotateTexture(
-            animation_GrassCutterRun.clips[3],
-            0,
-            {
-                x = rect_grasscutter.x + rect_grasscutter.w / 2,
-                y = rect_grasscutter.y + rect_grasscutter.h / 2
-            },
-            {flipmode_grasscutter},
-            {
-                x = rect_grasscutter.x - rect_viewport.x,
-                y = rect_grasscutter.y - rect_viewport.y,
-                w = animation_GrassCutterRun.rect.w,
-                h = animation_GrassCutterRun.rect.h
-            }
-    )
+    if isPlayerOutside then
+        if isMove_grasscutter then
+            CopyRotateTexture(
+                animation_GrassCutterRun.clips[animation_GrassCutterRun.index],
+                0,
+                {
+                    x = rect_grasscutter.x + rect_grasscutter.w / 2,
+                    y = rect_grasscutter.y + rect_grasscutter.h / 2
+                },
+                {flipmode_grasscutter},
+                {
+                    x = rect_grasscutter.x - rect_viewport.x,
+                    y = rect_grasscutter.y - rect_viewport.y,
+                    w = animation_GrassCutterRun.rect.w,
+                    h = animation_GrassCutterRun.rect.h
+                }
+            )
+        -- 否则渲染静态帧
+        else
+            CopyRotateTexture(
+                animation_GrassCutterRun.clips[3],
+                0,
+                {
+                    x = rect_grasscutter.x + rect_grasscutter.w / 2,
+                    y = rect_grasscutter.y + rect_grasscutter.h / 2
+                },
+                {flipmode_grasscutter},
+                {
+                    x = rect_grasscutter.x - rect_viewport.x,
+                    y = rect_grasscutter.y - rect_viewport.y,
+                    w = animation_GrassCutterRun.rect.w,
+                    h = animation_GrassCutterRun.rect.h
+                }
+            )
+        end
     end
 
     -- 绘制路灯图片
-    CopyReshapeTexture(
+    if isPlayerOutside then
+        CopyReshapeTexture(
         texture_StreetLamp,
         rect_viewport,
         {
@@ -1418,7 +1703,8 @@ while true do
             w = rect_viewport.w,
             h = height_image_StreetLamp
         }
-    )
+        )
+    end
 
     UpdateWindow()
     
