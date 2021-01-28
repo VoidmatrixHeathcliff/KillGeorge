@@ -53,7 +53,67 @@ timer_player_move = Timer.AddTimer(
             end
         -- 对室内玩家进行x和y轴坐标修正
         else
-
+            -- 房间左边界
+            if rect_player.x < 170 then 
+                rect_player.x = 170 
+            end
+            -- 房间右边界
+            if rect_player.x + rect_player.w * GetZoomRatio(rect_player) > 1050 then 
+                rect_player.x = 1050 - rect_player.w * GetZoomRatio(rect_player) 
+            end
+            -- 房间中部障碍物
+            local _rect_obstacle = {x = 435, y = 515, w = 285, h = 90}
+            if IfPointInRect({
+                    x = rect_player.x + rect_player.w / 2,
+                    y = rect_player.y + rect_player.h
+                }, _rect_obstacle)
+                and isMoveUp_player
+            then
+                rect_player.y = rect_player.y + speed_player
+            end
+            if IfPointInRect({
+                    x = rect_player.x + rect_player.w / 2,
+                    y = rect_player.y + rect_player.h
+                }, _rect_obstacle)
+                and isMoveDown_player
+            then
+                rect_player.y = rect_player.y - speed_player
+            end
+            if IfPointInRect({
+                    x = rect_player.x + rect_player.w / 2,
+                    y = rect_player.y + rect_player.h
+                }, _rect_obstacle)
+                and isMoveLeft_player
+            then
+                rect_player.x = rect_player.x + speed_player
+            end
+            if IfPointInRect({
+                    x = rect_player.x + rect_player.w / 2,
+                    y = rect_player.y + rect_player.h
+                }, _rect_obstacle)
+                and isMoveRight_player
+            then
+                rect_player.x = rect_player.x - speed_player
+            end
+            -- 楼梯底部两侧y轴坐标限定
+            if
+                rect_player.y + rect_player.h * GetZoomRatio(rect_player) < 440
+                and (
+                    rect_player.x + rect_player.w <= 590 
+                    or rect_player.x >= 670
+                )
+            then
+                rect_player.y = 440 - rect_player.h * GetZoomRatio(rect_player)
+            end
+            -- 楼梯两侧x轴坐标限定
+            if rect_player.y + rect_player.h * GetZoomRatio(rect_player) <= 440 then
+                if rect_player.x < 550 then rect_player.x = 550 end
+                if
+                    rect_player.x + rect_player.w * GetZoomRatio(rect_player) > 715
+                then
+                    rect_player.x = 715 - rect_player.w  * GetZoomRatio(rect_player)
+                end
+            end
         end
         
     end,
@@ -669,6 +729,21 @@ rect_grasscutter = {
     h = height_image_GrassCutter
 }
 
+-- 获取人物立绘缩放比率
+function GetZoomRatio(rect)
+    if 
+        (rect == rect_player and isPlayerOutside) 
+        or (rect == rect_george and isGeorgeOutside) 
+    then
+        return 1
+    elseif rect.y + rect.h > 280 then
+        return (rect.y + rect.h - 280) / (WINDOW_HEIGHT - 280) * 0.4 + 0.8
+    else
+        return 0.75
+    end
+    
+end
+
 -- 玩家立绘翻转模式
 flipmode_player = FLIP_NONE
 
@@ -697,146 +772,174 @@ obstacle_list = {
 
 -- 触发器列表
 trigger_list = {
-        -- 住宅大门
-        door_house = {
-            tips = {
-                {
-                    text = "Z：进入",
-                    condition = function() return true end
-                },
-                {
-                    text = "X：锁门",
-                    condition = function()
-                        return Knapsack.GetItem(index_holding).name == "Bolt"
-                    end
-                }
+    -- 住宅大门
+    door_house = {
+        tips = {
+            {
+                text = "Z：进入",
+                condition = function() return true end
             },
-            position = {isOutside = true, _startX = 430, _endX = 550},
-            handler = function(event)
-                -- 处理进门
-                if event == EVENT_KEYDOWN_Z then
-                    isPlayerOutside = false
-                    rect_player.x = WINDOW_WIDTH / 2 - rect_player.w / 2
-                    rect_player.y = 600
-                    height_addition_list.index = 1
-                    isJump_player = false
-                -- 判断当前玩家是否手持锁栓，手持则锁门
-                elseif event == EVENT_KEYDOWN_C then
-                    print("locked!")
+            {
+                text = "X：锁门",
+                condition = function()
+                    return Knapsack.GetItem(index_holding).name == "Bolt"
+                end
+            }
+        },
+        position = {isOutside = true, _startX = 460, _endX = 590},
+        handler = function(event)
+            -- 处理进门
+            if event == EVENT_KEYDOWN_Z then
+                isPlayerOutside = false
+                rect_player.x = WINDOW_WIDTH / 2 - rect_player.w / 2
+                rect_player.y = 600
+                height_addition_list.index = 1
+                isJump_player = false
+                speed_player = 3
+            -- 判断当前玩家是否手持锁栓，手持则锁门
+            elseif event == EVENT_KEYDOWN_C then
+                print("locked!")
+            end
+        end
+    },
+    -- 房间内大门
+    indoor_door = {
+        tips = {
+            {
+                text = "Z：出门",
+                condition = function() return true end
+            },
+            {
+                text = "X：锁门",
+                condition = function()
+                    return Knapsack.GetItem(index_holding).name == "Bolt"
+                end
+            }
+        },
+        position = {
+            isOutside = false,
+            _startX = WINDOW_WIDTH / 2 - width_image_IndoorDoor / 2,
+            _endX = WINDOW_WIDTH / 2 + width_image_IndoorDoor / 2,
+            _startY = WINDOW_HEIGHT - height_image_IndoorDoor - 35,
+            _endY = WINDOW_HEIGHT
+        },
+        handler = function(event)
+            -- 处理出门
+            if event == EVENT_KEYDOWN_Z then
+                isPlayerOutside = true
+                rect_player.x = 480
+                speed_player = 5
+            -- 判断当前玩家是否手持锁栓，手持则锁门
+            elseif event == EVENT_KEYDOWN_C then
+                print("locked!")
+            end
+        end
+    },
+    -- 割草机
+    grass_cutter = {
+        tips = {
+            {
+                text = "X：转向",
+                condition = function() return not isMove_grasscutter end
+            },
+            {
+                text = "Z：启动",
+                condition = function()
+                    return Knapsack.ExistItem("Battery")
+                end
+            }
+        },
+        position = {isOutside = true, _startX = 3110, _endX = 3245},
+        handler = function(event)
+            -- 处理启动割草机
+            if event == EVENT_KEYDOWN_Z then
+                if (not isMove_grasscutter) and Knapsack.ExistItem("Battery") and IsTriggerOn(trigger_list.grass_cutter) then
+                    isMove_grasscutter = true
+                    Knapsack.RemoveItem("Battery")
+                end
+            -- 处理割草机转向
+            elseif event == EVENT_KEYDOWN_X then
+                if not isMove_grasscutter then
+                    if flipmode_grasscutter == FLIP_HORIZONTAL then
+                        flipmode_grasscutter = FLIP_NONE
+                    else
+                        flipmode_grasscutter = FLIP_HORIZONTAL
+                    end
                 end
             end
+        end
+    },
+    -- 割草机电池
+    battery = {
+        tips = {
+            {
+                text = "Z：拾取",
+                condition = function()
+                    return true
+                end
+            }
         },
-        -- 房间内大门
-        indoor_door = {
-            tips = {
-                {
-                    text = "Z：出门",
-                    condition = function() return true end
-                },
-                {
-                    text = "X：锁门",
-                    condition = function()
-                        return Knapsack.GetItem(index_holding).name == "Bolt"
-                    end
-                }
+        position = {isOutside = false, _startX = 0, _startY = 0, _endX = 0, _endY = 0},
+        handler = function(event)
+            -- 捡起割草机电池
+            if event == EVENT_KEYDOWN_Z then
+                Knapsack.AddItem({name = "Battery", damage = damage_base_player})
+            end
+        end
+    },
+    -- 可躲藏草丛
+    grass = {
+        tips = {
+            {
+                text = "Z：躲藏",
+                condition = function()
+                    return not isHidden_player
+                end
             },
-            position = {
-                isOutside = false,
-                _startX = WINDOW_WIDTH / 2 - width_image_IndoorDoor / 2,
-                _endX = WINDOW_WIDTH / 2 + width_image_IndoorDoor / 2,
-                _startY = WINDOW_HEIGHT - height_image_IndoorDoor,
-                _endY = WINDOW_HEIGHT
-            },
-            handler = function(event)
-                -- 处理出门
-                if event == EVENT_KEYDOWN_Z then
-                    isPlayerOutside = true
-                    rect_player.x = 480
-                -- 判断当前玩家是否手持锁栓，手持则锁门
-                elseif event == EVENT_KEYDOWN_C then
-                    print("locked!")
+            {
+                text = "Z：跳出",
+                condition = function()
+                    return isHidden_player
+                end
+            }
+        },
+        position = {isOutside = true, _startX = 1850, _endX = 1970},
+        handler = function(event)
+            if event == EVENT_KEYDOWN_Z then
+                isHidden_player = not isHidden_player
+                if isHidden_player then
+                    num_playerhidden = num_playerhidden + 1
+                    rect_player.x = 1890
                 end
             end
-        },
-        -- 割草机
-        grass_cutter = {
-            tips = {
-                {
-                    text = "X：转向",
-                    condition = function() return not isMove_grasscutter end
-                },
-                {
-                    text = "Z：启动",
-                    condition = function()
-                        return Knapsack.ExistItem("Battery")
-                    end
-                }
-            },
-            position = {isOutside = true, _startX = 3110, _endX = 3245},
-            handler = function(event)
-                -- 处理启动割草机
-                if event == EVENT_KEYDOWN_Z then
-                    if (not isMove_grasscutter) and Knapsack.ExistItem("Battery") and IsTriggerOn(trigger_list.grass_cutter) then
-                        isMove_grasscutter = true
-                        Knapsack.RemoveItem("Battery")
-                    end
-                -- 处理割草机转向
-                elseif event == EVENT_KEYDOWN_X then
-                    if not isMove_grasscutter then
-                        if flipmode_grasscutter == FLIP_HORIZONTAL then
-                            flipmode_grasscutter = FLIP_NONE
-                        else
-                            flipmode_grasscutter = FLIP_HORIZONTAL
-                        end
-                    end
+        end
+    },
+    -- 屋内汽油桶
+    oilBarrel = {
+        tips = {
+            {
+                text = "Z：拾取",
+                condition = function()
+                    return (not isPlayerOutside) and (not isGot_OilBarrel)
                 end
-            end
+            }
         },
-        -- 割草机电池
-        battery = {
-            tips = {
-                {
-                    text = "Z：拾取",
-                    condition = function()
-                        return true
-                    end
-                }
-            },
-            position = {isOutside = false, _startX = 0, _startY = 0, _endX = 0, _endY = 0},
-            handler = function(event)
-                -- 捡起割草机电池
-                if event == EVENT_KEYDOWN_Z then
+        position = {
+            isOutside = false,
+            _startX = 880,
+            _endX = 1080,
+            _startY = 420 - rect_player.h * GetZoomRatio(rect_player),
+            _endY = 525 - rect_player.h * GetZoomRatio(rect_player)
+        },
+        handler = function(event)
+            if event == EVENT_KEYDOWN_Z then
+                isGot_OilBarrel = true
+                if not isGot_OilBarrel then
                     Knapsack.AddItem({name = "Battery", damage = damage_base_player})
                 end
             end
-        },
-        -- 可躲藏草丛
-        grass = {
-            tips = {
-                {
-                    text = "Z：躲藏",
-                    condition = function()
-                        return not isHidden_player
-                    end
-                },
-                {
-                    text = "Z：跳出",
-                    condition = function()
-                        return isHidden_player
-                    end
-                }
-            },
-            position = {isOutside = true, _startX = 1850, _endX = 1970},
-            handler = function(event)
-                if event == EVENT_KEYDOWN_Z then
-                    isHidden_player = not isHidden_player
-                    if isHidden_player then
-                        num_playerhidden = num_playerhidden + 1
-                        rect_player.x = 1890
-                    end
-                end
-            end
-        }
+        end
+    },
 }
 
 -- 玩家跳跃高度位移
@@ -907,7 +1010,7 @@ ratio_shadow = 1
 -- 铁门是否打开
 isIronGateOpen = true
 
--- 获取当前玩家位置的基础高度
+-- 获取当前角色位置的基础高度（室外
 function GetBaseHeight(rect)
     local _default = nil
     if isHidden_player and rect == rect_player then
@@ -923,20 +1026,32 @@ function GetBaseHeight(rect)
             and rect.x < obstacle.position._end
         then
             if rect.x < obstacle.position._corner_1 then
-                speed_player = 4
+                if rect == rect_player then
+                    speed_player = 4 
+                else
+                    speed_george = speed_player - 0.2
+                end
                 return _default - (rect.x - obstacle.position._start)
                     * obstacle.offset / (obstacle.position._corner_1 - obstacle.position._start)
             elseif rect.x > obstacle.position._corner_2 then
-                speed_player = 4
+                if rect == rect_player then
+                    speed_player = 4 
+                else
+                    speed_george = speed_player - 0.2
+                end
                 return _default - obstacle.offset + (rect.x - obstacle.position._corner_2)
                     * obstacle.offset / (obstacle.position._end - obstacle.position._corner_2)
             else
-                speed_player = 5
+                if rect == rect_player then
+                    speed_player = 5 
+                else
+                    speed_george = speed_player - 0.2
+                end
                 return _default - obstacle.offset
             end
         end
     end
-    speed_player = 5
+    if isPlayerOutside then speed_player = 5 end
     return _default
 end
 
@@ -1331,9 +1446,9 @@ while true do
             texture_Shadow,
             {
                 x = rect_player.x + rect_player.w / 2 - width_image_Shadow / 2 - rect_viewport.x,
-                y = rect_player.y + rect_player.h - 15,
-                w = width_image_Shadow,
-                h = height_image_Shadow
+                y = rect_player.y + rect_player.h * GetZoomRatio(rect_player) - 15,
+                w = width_image_Shadow * GetZoomRatio(rect_player),
+                h = height_image_Shadow * GetZoomRatio(rect_player)
             }
         )
     end
@@ -1345,16 +1460,29 @@ while true do
             (isPlayerOutside and isGeorgeOutside) 
             and ((not isPlayerOutside) and (not isGeorgeOutside)) 
         then
+            SetTextureAlpha(texture_Shadow, 150)
+            CopyTexture(
+                texture_Shadow,
+                {
+                    x = rect_george.x + rect_george.w / 2 - width_image_Shadow / 2 - 5 - rect_viewport.x,
+                    y = GetBaseHeight(rect_george) + rect_george.h - 15 - rect_viewport.y,
+                    w = width_image_Shadow,
+                    h = height_image_Shadow
+                }
+            )
+        end
+    else
+        -- 设置脚底阴影图片透明度
+        SetTextureAlpha(texture_Shadow, 50)
         CopyTexture(
             texture_Shadow,
             {
-                x = rect_george.x + rect_george.w / 2 - width_image_Shadow / 2 - 5 - rect_viewport.x,
-                y = GetBaseHeight(rect_george) + rect_george.h - 15 - rect_viewport.y,
-                w = width_image_Shadow,
-                h = height_image_Shadow
+                x = rect_george.x + rect_george.w / 2 - width_image_Shadow / 2 - rect_viewport.x,
+                y = rect_george.y + rect_george.h * GetZoomRatio(rect_george) - 15,
+                w = width_image_Shadow * GetZoomRatio(rect_george),
+                h = height_image_Shadow * GetZoomRatio(rect_george)
             }
         )
-    end
     end
     
     -- 如果没有躲避优先绘制前草动画
@@ -1388,12 +1516,12 @@ while true do
     end
 
     -- 绘制屋内油桶
-    if not isGot_OilBarrel then
+    if (not isPlayerOutside) and (not isGot_OilBarrel) then
         CopyTexture(
             texture_OilBarrel,
             {
                 x = 950,
-                y = 315,
+                y = 340,
                 w = width_image_OilBarrel * 0.7,
                 h = height_image_OilBarrel * 0.7
             }
@@ -1440,8 +1568,8 @@ while true do
                 {
                     x = rect_player.x - rect_viewport.x,
                     y = rect_player.y - rect_viewport.y,
-                    w = rect_player.w,
-                    h = rect_player.h
+                    w = rect_player.w * GetZoomRatio(rect_player),
+                    h = rect_player.h * GetZoomRatio(rect_player)
                 }
             )
         else
@@ -1456,8 +1584,8 @@ while true do
                 {
                     x = rect_player.x - rect_viewport.x,
                     y = rect_player.y - rect_viewport.y,
-                    w = rect_player.w,
-                    h = rect_player.h
+                    w = rect_player.w * GetZoomRatio(rect_player),
+                    h = rect_player.h * GetZoomRatio(rect_player)
                 }
             )
         end
@@ -1505,27 +1633,8 @@ while true do
         end
     end
 
-    -- 绘制屋内房门
-    if not isPlayerOutside then
-        CopyTexture(
-            texture_IndoorDoor,
-            {
-                x = WINDOW_WIDTH / 2 - width_image_IndoorDoor / 2,
-                y = WINDOW_HEIGHT - 50,
-                w = width_image_IndoorDoor,
-                h = height_image_IndoorDoor
-            }
-        )
-    end
-
     -- 如果玩家处于室内则绘制光线遮罩
     if not isPlayerOutside then
-        print("player:", rect_player.x, rect_player.y)
-        print("trigger:", trigger_list.indoor_door.position._startX, 
-            trigger_list.indoor_door.position._endX,
-            trigger_list.indoor_door.position._startY,
-            trigger_list.indoor_door.position._endY
-        )
         CopyTexture(
             texture_Mask,
             {
@@ -1695,14 +1804,38 @@ while true do
     -- 绘制路灯图片
     if isPlayerOutside then
         CopyReshapeTexture(
-        texture_StreetLamp,
-        rect_viewport,
-        {
+            texture_StreetLamp,
+            rect_viewport,
+            {
+                x = 0,
+                y = rect_viewport.h - height_image_StreetLamp + 60,
+                w = rect_viewport.w,
+                h = height_image_StreetLamp
+            }
+        )
+    end
+
+    -- 绘制室内下方黑色边框
+    if not isPlayerOutside then
+        SetDrawColor({r = 0, g = 0, b = 0, a = 255})
+        FillRectangle({
             x = 0,
-            y = rect_viewport.h - height_image_StreetLamp + 60,
-            w = rect_viewport.w,
-            h = height_image_StreetLamp
-        }
+            y = WINDOW_HEIGHT - 18,
+            w = WINDOW_WIDTH,
+            h = 18
+        })
+    end
+
+    -- 绘制屋内房门
+    if not isPlayerOutside then
+        CopyTexture(
+            texture_IndoorDoor,
+            {
+                x = WINDOW_WIDTH / 2 - width_image_IndoorDoor / 2,
+                y = WINDOW_HEIGHT - 50,
+                w = width_image_IndoorDoor,
+                h = height_image_IndoorDoor
+            }
         )
     end
 
@@ -1710,8 +1843,6 @@ while true do
     
     local _end = GetInitTime()
     
-    if _end - _start < 1000 / _FPS_ then
-        Sleep(1000 / _FPS_ - (_end - _start))
-    end
+    DynamicSleep(1000 / _FPS_, _end - _start)
 
 end
