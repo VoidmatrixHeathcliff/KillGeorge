@@ -27,7 +27,7 @@ function Timer.AddTimer(delay, callback, params, disposal)
         _params = params,
         _disposal = disposal or false
     })
-    return #table
+    return #_timer_list
 end
 
 --[[
@@ -39,7 +39,6 @@ end
 --]]
 function Timer.RemoveTimer(id)
     assert(type(id) == "number", "Timer.RemoveTimer()：参数#1类型必须为number")
-    print("id", id, "#_timer_list", #_timer_list)
     assert(id > 0 and id <= #_timer_list, "Timer.RemoveTimer()：参数#1必须为有效计时器ID")
     table.remove(_timer_list, id)
 end
@@ -57,9 +56,11 @@ function Timer.Update()
         _timer_list[i]._duration = _timer_list[i]._duration + (_current - _timer_list[i]._last)
         _timer_list[i]._last = _current
         if _timer_list[i]._delay <= _timer_list[i]._duration then
-            _timer_list[i]._callback(_timer_list[i].params)
-            _timer_list[i]._duration = 0
-            if _timer_list[i]._disposal then table.remove(_timer_list, i) end
+            _timer_list[i]._callback(_timer_list[i]._params)
+            if _timer_list[i] then
+                _timer_list[i]._duration = 0
+                if _timer_list[i]._disposal then table.remove(_timer_list, i) end
+            end
         end
     end
 end

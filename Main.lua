@@ -58,8 +58,8 @@ timer_player_move = Timer.AddTimer(
                 rect_player.x = 170 
             end
             -- 房间右边界
-            if rect_player.x + rect_player.w * GetZoomRatio(rect_player) > 1050 then 
-                rect_player.x = 1050 - rect_player.w * GetZoomRatio(rect_player) 
+            if rect_player.x + rect_player.w * GetZoomRatio(rect_player) > 1125 then 
+                rect_player.x = 1125 - rect_player.w * GetZoomRatio(rect_player) 
             end
             -- 房间中部障碍物
             local _rect_obstacle = {x = 435, y = 515, w = 285, h = 90}
@@ -228,6 +228,35 @@ timer_player_walk = Timer.AddTimer(
     {}
 )
 
+-- 玩家受伤状态静止动画定时器
+timer_player_injury_idle = Timer.AddTimer(
+    100,
+    function()
+        animation_PlayerInjury_Idle.index = animation_PlayerInjury_Idle.index % #animation_PlayerInjury_Idle.clips + 1
+    end,
+    {}
+)
+
+-- 玩家受伤状态行走动画定时器
+timer_player_injury_walk = Timer.AddTimer(
+    100,
+    function()
+        animation_PlayerInjury_Walk.index = animation_PlayerInjury_Walk.index % #animation_PlayerInjury_Walk.clips + 1
+    end,
+    {}
+)
+
+-- 玩家死亡动画定时器
+timer_player_death = Timer.AddTimer(
+    100,
+    function()
+        if hp_player == 0 and animation_Player_Death.index < #animation_Player_Death.clips then
+            animation_Player_Death.index = animation_Player_Death.index + 1
+        end
+    end,
+    {}
+)
+
 -- 乔治默认状态动画定时器
 timer_george_idle = Timer.AddTimer(
     150,
@@ -242,6 +271,73 @@ timer_george_run = Timer.AddTimer(
     150,
     function()
         animation_GeorgeRun.index = animation_GeorgeRun.index % #animation_GeorgeRun.clips + 1
+    end,
+    {}
+)
+
+-- 乔治受伤状态奔跑动画定时器
+timer_george_injury_run = Timer.AddTimer(
+    150,
+    function()
+        animation_GeorgeInjury_Run.index = animation_GeorgeInjury_Run.index % #animation_GeorgeInjury_Run.clips + 1
+    end,
+    {}
+)
+
+-- 乔治死亡动画定时器
+timer_george_death = Timer.AddTimer(
+    150,
+    function()
+        if hp_george == 0 and animation_GeorgeDeath.index < #animation_GeorgeDeath.clips then
+            animation_GeorgeDeath.index = animation_GeorgeDeath.index + 1
+        end
+    end,
+    {}
+)
+
+-- 警卫默认状态动画定时器
+timer_guard_idle = Timer.AddTimer(
+    150,
+    function()
+        animation_GuardIdle.index = animation_GuardIdle.index % #animation_GuardIdle.clips + 1
+    end,
+    {}
+)
+
+-- 警卫行走状态动画定时器
+timer_guard_run = Timer.AddTimer(
+    150,
+    function()
+        animation_GuardWalk.index = animation_GuardWalk.index % #animation_GuardWalk.clips + 1
+    end,
+    {}
+)
+
+-- 警卫受伤状态静止动画定时器
+timer_guard_injury_idle = Timer.AddTimer(
+    150,
+    function()
+        animation_GuardInjury_Idle.index = animation_GuardInjury_Idle.index % #animation_GuardInjury_Idle.clips + 1
+    end,
+    {}
+)
+
+-- 警卫受伤状态行走动画定时器
+timer_guard_injury_run = Timer.AddTimer(
+    150,
+    function()
+        animation_GuardInjury_Walk.index = animation_GuardInjury_Walk.index % #animation_GuardInjury_Walk.clips + 1
+    end,
+    {}
+)
+
+-- 警卫死亡动画定时器
+timer_guard_death = Timer.AddTimer(
+    150,
+    function()
+        if hp_guard == 0 and animation_GuardDeath.index < #animation_GuardDeath.clips then
+            animation_GuardDeath.index = animation_GuardDeath.index + 1
+        end
     end,
     {}
 )
@@ -327,22 +423,32 @@ image_Background_8 = LoadImage("Resource/Image/Background/level_1_bg_8.png")
 image_Background_9 = LoadImage("Resource/Image/Background/level_1_bg_9.png")
 image_Background_10 = LoadImage("Resource/Image/Background/level_1_bg_10.png")
 image_Background_11 = LoadImage("Resource/Image/Background/level_1_bg_11.png")
+
 image_GrassCutter_1 = LoadImage("Resource/Image/GrassCutter/1.png")
 image_GrassCutter_2 = LoadImage("Resource/Image/GrassCutter/2.png")
 image_GrassCutter_3 = LoadImage("Resource/Image/GrassCutter/3.png")
+
 image_Character_Idle_1 = LoadImage("Resource/Image/Character/Player/idle_1.png")
 image_Character_Idle_2 = LoadImage("Resource/Image/Character/Player/idle_2.png")
 image_Character_Walk_1 = LoadImage("Resource/Image/Character/Player/walk_1.png")
 image_Character_Walk_2 = LoadImage("Resource/Image/Character/Player/walk_2.png")
 image_Character_Walk_3 = LoadImage("Resource/Image/Character/Player/walk_3.png")
 image_Character_Walk_4 = LoadImage("Resource/Image/Character/Player/walk_4.png")
-image_Haystack_1 = LoadImage("Resource/Image/Haystack/1.png")
-image_Haystack_2 = LoadImage("Resource/Image/Haystack/2.png")
-image_Haystack_3 = LoadImage("Resource/Image/Haystack/3.png")
-image_Haystack_4 = LoadImage("Resource/Image/Haystack/4.png")
-image_Haystack_5 = LoadImage("Resource/Image/Haystack/5.png")
-image_Haystack_6 = LoadImage("Resource/Image/Haystack/6.png")
-image_Haystack_7 = LoadImage("Resource/Image/Haystack/7.png")
+image_Character_Injury_Idle_1 = LoadImage("Resource/Image/Character/Player/injury_idle_1.png")
+image_Character_Injury_Idle_2 = LoadImage("Resource/Image/Character/Player/injury_idle_2.png")
+image_Character_Injury_Walk_1 = LoadImage("Resource/Image/Character/Player/injury_walk_1.png")
+image_Character_Injury_Walk_2 = LoadImage("Resource/Image/Character/Player/injury_walk_2.png")
+image_Character_Injury_Walk_3 = LoadImage("Resource/Image/Character/Player/injury_walk_3.png")
+image_Character_Injury_Walk_4 = LoadImage("Resource/Image/Character/Player/injury_walk_4.png")
+image_Character_Death_1 = LoadImage("Resource/Image/Character/Player/death_1.png")
+image_Character_Death_2 = LoadImage("Resource/Image/Character/Player/death_2.png")
+image_Character_Death_3 = LoadImage("Resource/Image/Character/Player/death_3.png")
+image_Character_Death_4 = LoadImage("Resource/Image/Character/Player/death_4.png")
+image_Character_Death_5 = LoadImage("Resource/Image/Character/Player/death_5.png")
+image_Character_Death_6 = LoadImage("Resource/Image/Character/Player/death_6.png")
+image_Character_Death_7 = LoadImage("Resource/Image/Character/Player/death_7.png")
+image_Character_Death_8 = LoadImage("Resource/Image/Character/Player/death_8.png")
+
 image_George_Idle_1 = LoadImage("Resource/Image/Character/George/idle_1.png")
 image_George_Idle_2 = LoadImage("Resource/Image/Character/George/idle_2.png")
 image_George_Idle_3 = LoadImage("Resource/Image/Character/George/idle_3.png")
@@ -352,42 +458,115 @@ image_George_run_3 = LoadImage("Resource/Image/Character/George/run_3.png")
 image_George_run_4 = LoadImage("Resource/Image/Character/George/run_4.png")
 image_George_run_5 = LoadImage("Resource/Image/Character/George/run_5.png")
 image_George_run_6 = LoadImage("Resource/Image/Character/George/run_6.png")
+image_George_Injury_Run_1 = LoadImage("Resource/Image/Character/George/injury_run_1.png")
+image_George_Injury_Run_2 = LoadImage("Resource/Image/Character/George/injury_run_2.png")
+image_George_Injury_Run_3 = LoadImage("Resource/Image/Character/George/injury_run_3.png")
+image_George_Injury_Run_4 = LoadImage("Resource/Image/Character/George/injury_run_4.png")
+image_George_Injury_Run_5 = LoadImage("Resource/Image/Character/George/injury_run_5.png")
+image_George_Injury_Run_6 = LoadImage("Resource/Image/Character/George/injury_run_6.png")
+image_George_Death_1 = LoadImage("Resource/Image/Character/George/death_1.png")
+image_George_Death_2 = LoadImage("Resource/Image/Character/George/death_2.png")
+image_George_Death_3 = LoadImage("Resource/Image/Character/George/death_3.png")
+image_George_Death_4 = LoadImage("Resource/Image/Character/George/death_4.png")
+image_George_Death_5 = LoadImage("Resource/Image/Character/George/death_5.png")
+image_George_Death_6 = LoadImage("Resource/Image/Character/George/death_6.png")
+image_George_Death_7 = LoadImage("Resource/Image/Character/George/death_7.png")
+
+image_Guard_Idle_1 = LoadImage("Resource/Image/Character/Guard/idle_1.png")
+image_Guard_Idle_2 = LoadImage("Resource/Image/Character/Guard/idle_2.png")
+image_Guard_Walk_1 = LoadImage("Resource/Image/Character/Guard/walk_1.png")
+image_Guard_Walk_2 = LoadImage("Resource/Image/Character/Guard/walk_2.png")
+image_Guard_Walk_3 = LoadImage("Resource/Image/Character/Guard/walk_3.png")
+image_Guard_Walk_4 = LoadImage("Resource/Image/Character/Guard/walk_4.png")
+image_Guard_Walk_5 = LoadImage("Resource/Image/Character/Guard/walk_5.png")
+image_Guard_Walk_6 = LoadImage("Resource/Image/Character/Guard/walk_6.png")
+image_Guard_Walk_7 = LoadImage("Resource/Image/Character/Guard/walk_7.png")
+image_Guard_Injury_Idle_1 = LoadImage("Resource/Image/Character/Guard/injury_idle_1.png")
+image_Guard_Injury_Idle_2 = LoadImage("Resource/Image/Character/Guard/injury_idle_2.png")
+image_Guard_Injury_Walk_1 = LoadImage("Resource/Image/Character/Guard/injury_walk_1.png")
+image_Guard_Injury_Walk_2 = LoadImage("Resource/Image/Character/Guard/injury_walk_2.png")
+image_Guard_Injury_Walk_3 = LoadImage("Resource/Image/Character/Guard/injury_walk_3.png")
+image_Guard_Injury_Walk_4 = LoadImage("Resource/Image/Character/Guard/injury_walk_4.png")
+image_Guard_Death_1 = LoadImage("Resource/Image/Character/Guard/death_1.png")
+image_Guard_Death_2 = LoadImage("Resource/Image/Character/Guard/death_2.png")
+image_Guard_Death_3 = LoadImage("Resource/Image/Character/Guard/death_3.png")
+image_Guard_Death_4 = LoadImage("Resource/Image/Character/Guard/death_4.png")
+image_Guard_Death_5 = LoadImage("Resource/Image/Character/Guard/death_5.png")
+image_Guard_Death_6 = LoadImage("Resource/Image/Character/Guard/death_6.png")
+image_Guard_Death_7 = LoadImage("Resource/Image/Character/Guard/death_7.png")
+image_Guard_Death_8 = LoadImage("Resource/Image/Character/Guard/death_8.png")
+
+image_Haystack_1 = LoadImage("Resource/Image/Haystack/1.png")
+image_Haystack_2 = LoadImage("Resource/Image/Haystack/2.png")
+image_Haystack_3 = LoadImage("Resource/Image/Haystack/3.png")
+image_Haystack_4 = LoadImage("Resource/Image/Haystack/4.png")
+image_Haystack_5 = LoadImage("Resource/Image/Haystack/5.png")
+image_Haystack_6 = LoadImage("Resource/Image/Haystack/6.png")
+image_Haystack_7 = LoadImage("Resource/Image/Haystack/7.png")
+
 image_Statue_1 = LoadImage("Resource/Image/Statue/1.png")
 image_Statue_2 = LoadImage("Resource/Image/Statue/2.png")
+
 image_Fountain_1 = LoadImage("Resource/Image/Fountain/1.png")
 image_Fountain_2 = LoadImage("Resource/Image/Fountain/2.png")
 image_Fountain_3 = LoadImage("Resource/Image/Fountain/3.png")
 image_Fountain_4 = LoadImage("Resource/Image/Fountain/4.png")
+
 image_IronGateWall = LoadImage("Resource/Image/IronGate/Wall.png")
+
 image_IronGate_1 = LoadImage("Resource/Image/IronGate/1.png")
 image_IronGate_2 = LoadImage("Resource/Image/IronGate/2.png")
 image_IronGate_3 = LoadImage("Resource/Image/IronGate/3.png")
 image_IronGate_4 = LoadImage("Resource/Image/IronGate/4.png")
+
 image_FlowerBed_1 = LoadImage("Resource/Image/FlowerBed/1.png")
 image_FlowerBed_2 = LoadImage("Resource/Image/FlowerBed/2.png")
 image_FlowerBed_3 = LoadImage("Resource/Image/FlowerBed/3.png")
+
 image_Shadow = LoadImage("Resource/Image/Shadow/1.png")
+
 image_FrontGrass_1 = LoadImage("Resource/Image/FrontGrass/1.png")
 image_FrontGrass_2 = LoadImage("Resource/Image/FrontGrass/2.png")
 image_FrontGrass_3 = LoadImage("Resource/Image/FrontGrass/3.png")
+
 image_Ground = LoadImage("Resource/Image/Ground/level_1_ground_1.png")
+
 image_Sky = LoadImage("Resource/Image/Sky/1.png")
+
 image_Cloud = LoadImage("Resource/Image/Cloud/1.png")
+
 image_Flowerpot_1 = LoadImage("Resource/Image/Flowerpot/1.png")
 image_Flowerpot_2 = LoadImage("Resource/Image/Flowerpot/2.png")
 image_Flowerpot_3 = LoadImage("Resource/Image/Flowerpot/3.png")
 image_StreetLamp = LoadImage("Resource/Image/StreetLamp/1.png")
+
 image_Crow_1 = LoadImage("Resource/Image/Crow/1.png")
 image_Crow_2 = LoadImage("Resource/Image/Crow/2.png")
 image_Crow_3 = LoadImage("Resource/Image/Crow/3.png")
 image_Crow_4 = LoadImage("Resource/Image/Crow/4.png")
 image_Crow_5 = LoadImage("Resource/Image/Crow/5.png")
+
 image_Background_indoor = LoadImage("Resource/Image/Background/level_1_bg_12.png")
+
 image_Mask = LoadImage("Resource/Image/Mask/1.png")
+
 image_MaskLight = LoadImage("Resource/Image/Mask/2.png")
+
 image_Stairs = LoadImage("Resource/Image/Stairs/1.png")
+
 image_IndoorDoor = LoadImage("Resource/Image/IndoorDoor/1.png")
+
 image_OilBarrel = LoadImage("Resource/Image/OilBarrel/1.png")
+
+image_OilBarrel_mini = LoadImage("Resource/Image/OilBarrel/1_mini.png")
+
+image_Bolt = LoadImage("Resource/Image/Bolt/1.png")
+
+image_Bolt_mini = LoadImage("Resource/Image/Bolt/1_mini.png")
+
+image_Pistol = LoadImage("Resource/Image/Pistol/1.png")
+
+image_Pistol_mini = LoadImage("Resource/Image/Pistol/1_mini.png")
 
 -- 生成图片纹理数据
 texture_IronGateWall = CreateTexture(image_IronGateWall)
@@ -402,14 +581,25 @@ texture_MaskLight = CreateTexture(image_MaskLight)
 texture_Stairs = CreateTexture(image_Stairs)
 texture_IndoorDoor = CreateTexture(image_IndoorDoor)
 texture_OilBarrel = CreateTexture(image_OilBarrel)
+texture_Bolt = CreateTexture(image_Bolt)
+texture_Pistol = CreateTexture(image_Pistol)
+texture_mini = {
+    Battery = CreateTexture(image_OilBarrel_mini),
+    Bolt = CreateTexture(image_Bolt_mini),
+    Pistol = CreateTexture(image_Pistol_mini),
+}
 
 -- 图片尺寸
 width_image_Background, height_image_Background = GetImageSize(image_Background_1)
 width_image_Ground, height_image_Ground = GetImageSize(image_Ground)
 width_image_GrassCutter, height_image_GrassCutter = GetImageSize(image_GrassCutter_1)
 width_image_Player, height_image_Player = GetImageSize(image_Character_Idle_1)
-width_image_Haystack, height_image_Haystack = GetImageSize(image_Haystack_1)
+width_image_Player_Death, height_image_Player_Death = GetImageSize(image_Character_Death_1)
 width_image_George, height_image_George = GetImageSize(image_George_Idle_1)
+width_image_George_Death, height_image_George_Death = GetImageSize(image_George_Death_1)
+width_image_Guard, height_image_Guard = GetImageSize(image_Guard_Death_1)
+width_image_Guard_Death, height_image_Guard_Death = GetImageSize(image_Guard_Death_1)
+width_image_Haystack, height_image_Haystack = GetImageSize(image_Haystack_1)
 width_image_Statue, height_image_Statue = GetImageSize(image_Statue_1)
 width_image_Fountain, height_image_Fountain = GetImageSize(image_Fountain_1)
 width_image_IronGateWall, height_image_IronGateWall = GetImageSize(image_IronGateWall)
@@ -428,6 +618,11 @@ width_image_MaskLight, height_image_MaskLight = GetImageSize(image_MaskLight)
 width_image_Stairs, height_image_Stairs = GetImageSize(image_Stairs)
 width_image_IndoorDoor, height_image_IndoorDoor = GetImageSize(image_IndoorDoor)
 width_image_OilBarrel, height_image_OilBarrel = GetImageSize(image_OilBarrel)
+width_image_OilBarrel_mini, height_image_OilBarrel_mini = GetImageSize(image_OilBarrel_mini)
+width_image_Bolt, height_image_Bolt = GetImageSize(image_Bolt)
+width_image_Bolt_mini, height_image_Bolt_mini = GetImageSize(image_Bolt_mini)
+width_image_Pistol, height_image_Pistol = GetImageSize(image_Pistol)
+width_image_Pistol_mini, height_image_Pistol_mini = GetImageSize(image_Pistol_mini)
 
 -- 背景图片动画
 animation_Background = {
@@ -520,6 +715,44 @@ animation_PlayerWalk = {
     rect = {w = width_image_Player, h = height_image_Player}
 }
 
+-- 玩家受伤状态下静止动画
+animation_PlayerInjury_Idle = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Character_Injury_Idle_1),
+        CreateTexture(image_Character_Injury_Idle_2),
+    },
+    rect = {w = width_image_Player, h = height_image_Player}
+}
+
+-- 玩家受伤状态下行走动画
+animation_PlayerInjury_Walk = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Character_Injury_Walk_1),
+        CreateTexture(image_Character_Injury_Walk_2),
+        CreateTexture(image_Character_Injury_Walk_3),
+        CreateTexture(image_Character_Injury_Walk_4),
+    },
+    rect = {w = width_image_Player, h = height_image_Player}
+}
+
+-- 玩家死亡动画
+animation_Player_Death = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Character_Death_1),
+        CreateTexture(image_Character_Death_2),
+        CreateTexture(image_Character_Death_3),
+        CreateTexture(image_Character_Death_4),
+        CreateTexture(image_Character_Death_5),
+        CreateTexture(image_Character_Death_6),
+        CreateTexture(image_Character_Death_7),
+        CreateTexture(image_Character_Death_8),
+    },
+    rect = {w = width_image_Player_Death, h = height_image_Player_Death}
+}
+
 -- 乔治静止状态动画
 animation_GeorgeIdle = {
     index = 1,
@@ -531,7 +764,7 @@ animation_GeorgeIdle = {
     rect = {w = width_image_George, h = height_image_George}
 }
 
--- 乔治行走动画
+-- 乔治奔跑动画
 animation_GeorgeRun = {
     index = 1,
     clips = {
@@ -543,6 +776,98 @@ animation_GeorgeRun = {
         CreateTexture(image_George_run_6),
     },
     rect = {w = width_image_George, h = height_image_George}
+}
+
+-- 乔治受伤状态下奔跑动画
+animation_GeorgeInjury_Run = {
+    index = 1,
+    clips = {
+        CreateTexture(image_George_Injury_Run_1),
+        CreateTexture(image_George_Injury_Run_2),
+        CreateTexture(image_George_Injury_Run_3),
+        CreateTexture(image_George_Injury_Run_4),
+        CreateTexture(image_George_Injury_Run_5),
+        CreateTexture(image_George_Injury_Run_6),
+    },
+    rect = {w = width_image_George, h = height_image_George}
+}
+
+-- 乔治死亡动画
+animation_GeorgeDeath = {
+    index = 1,
+    clips = {
+        CreateTexture(image_George_Death_1),
+        CreateTexture(image_George_Death_2),
+        CreateTexture(image_George_Death_3),
+        CreateTexture(image_George_Death_4),
+        CreateTexture(image_George_Death_5),
+        CreateTexture(image_George_Death_6),
+        CreateTexture(image_George_Death_7),
+    },
+    rect = {w = width_image_George_Death, h = height_image_George_Death}
+}
+
+-- 警卫静止状态动画
+animation_GuardIdle = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Guard_Idle_1),
+        CreateTexture(image_Guard_Idle_2),
+    },
+    rect = {w = width_image_George, h = height_image_George}
+}
+
+-- 警卫行走状态动画
+animation_GuardWalk = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Guard_Walk_1),
+        CreateTexture(image_Guard_Walk_2),
+        CreateTexture(image_Guard_Walk_3),
+        CreateTexture(image_Guard_Walk_4),
+        CreateTexture(image_Guard_Walk_5),
+        CreateTexture(image_Guard_Walk_6),
+        CreateTexture(image_Guard_Walk_7),
+    },
+    rect = {w = width_image_George, h = height_image_George}
+}
+
+-- 警卫受伤状态下静止动画
+animation_GuardInjury_Idle = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Guard_Injury_Idle_1),
+        CreateTexture(image_Guard_Injury_Idle_2),
+    },
+    rect = {w = width_image_George, h = height_image_George}
+}
+
+-- 警卫受伤状态下行走动画
+animation_GuardInjury_Walk = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Guard_Injury_Walk_1),
+        CreateTexture(image_Guard_Injury_Walk_2),
+        CreateTexture(image_Guard_Injury_Walk_3),
+        CreateTexture(image_Guard_Injury_Walk_4),
+    },
+    rect = {w = width_image_George, h = height_image_George}
+}
+
+-- 警卫死亡动画
+animation_GuardDeath = {
+    index = 1,
+    clips = {
+        CreateTexture(image_Guard_Death_1),
+        CreateTexture(image_Guard_Death_2),
+        CreateTexture(image_Guard_Death_3),
+        CreateTexture(image_Guard_Death_4),
+        CreateTexture(image_Guard_Death_5),
+        CreateTexture(image_Guard_Death_6),
+        CreateTexture(image_Guard_Death_7),
+        CreateTexture(image_Guard_Death_8),
+    },
+    rect = {w = width_image_George_Death, h = height_image_George_Death}
 }
 
 -- 干草堆倒下动画
@@ -667,6 +992,9 @@ end
 
 -- 乔治生命值
 hp_george = 50
+
+-- 警卫生命值
+hp_guard = 50
 
 -- 玩家生命值
 hp_player = 50
@@ -845,7 +1173,7 @@ trigger_list = {
             {
                 text = "Z：启动",
                 condition = function()
-                    return Knapsack.ExistItem("Battery")
+                    return Knapsack.GetItem(index_holding).name == "Battery"
                 end
             }
         },
@@ -866,24 +1194,6 @@ trigger_list = {
                         flipmode_grasscutter = FLIP_HORIZONTAL
                     end
                 end
-            end
-        end
-    },
-    -- 割草机电池
-    battery = {
-        tips = {
-            {
-                text = "Z：拾取",
-                condition = function()
-                    return true
-                end
-            }
-        },
-        position = {isOutside = false, _startX = 0, _startY = 0, _endX = 0, _endY = 0},
-        handler = function(event)
-            -- 捡起割草机电池
-            if event == EVENT_KEYDOWN_Z then
-                Knapsack.AddItem({name = "Battery", damage = damage_base_player})
             end
         end
     },
@@ -926,17 +1236,41 @@ trigger_list = {
         },
         position = {
             isOutside = false,
-            _startX = 880,
+            _startX = 925,
             _endX = 1080,
             _startY = 420 - rect_player.h * GetZoomRatio(rect_player),
             _endY = 525 - rect_player.h * GetZoomRatio(rect_player)
         },
         handler = function(event)
             if event == EVENT_KEYDOWN_Z then
-                isGot_OilBarrel = true
                 if not isGot_OilBarrel then
                     Knapsack.AddItem({name = "Battery", damage = damage_base_player})
                 end
+                isGot_OilBarrel = true
+            end
+        end
+    },
+    -- 草丛掉落锁栓
+    bolt = {
+        tips = {
+            {
+                text = "Z：拾取",
+                condition = function()
+                    return isPlayerOutside and isBoltDropped and (not isGot_Bolt)
+                end
+            }
+        },
+        position = {
+            isOutside = true,
+            _startX = 1710,
+            _endX = 1825,
+        },
+        handler = function(event)
+            if event == EVENT_KEYDOWN_Z then
+                if not isGot_Bolt then
+                    Knapsack.AddItem({name = "Bolt", damage = damage_base_player})
+                end
+                isGot_Bolt = true
             end
         end
     },
@@ -970,6 +1304,9 @@ isMove_grasscutter = false
 
 -- 油桶是否被拾取
 isGot_OilBarrel = false
+
+-- 锁链是否被拾取
+isGot_Bolt = false
 
 -- 玩家是否正在跳跃
 isJump_player = false
@@ -1009,6 +1346,9 @@ ratio_shadow = 1
 
 -- 铁门是否打开
 isIronGateOpen = true
+
+-- 警卫是否被惊扰
+isGuardDisturb = false
 
 -- 获取当前角色位置的基础高度（室外
 function GetBaseHeight(rect)
@@ -1080,7 +1420,7 @@ end
 
 -- 绘制玩家背包内容
 function DrawKnapsack()
-    local _size_cell = 25
+    local _size_cell = 30
     local _size_border = 3
     local _rect_knapsack = {
         x = rect_player.x + rect_player.w / 2 - 
@@ -1100,12 +1440,24 @@ function DrawKnapsack()
     })
     SetDrawColor({r = 125, g = 125, b = 125, a = 175})
     for i = 1, Knapsack.GetMaxSpace() do
-        FillRectangle({
+        local _rect_cell = {
             x = _rect_knapsack.x + _size_border * i + _size_cell * (i - 1),
             y = _rect_knapsack.y + _size_border,
             w = _size_cell,
             h = _size_cell
-        })
+        }
+        FillRectangle(_rect_cell)
+        if Knapsack.GetItem(i).name then
+            CopyTexture(
+                texture_mini[Knapsack.GetItem(i).name],
+                {
+                    x = _rect_cell.x + 2,
+                    y = _rect_cell.y + 2,
+                    w = _rect_cell.w - 4,
+                    h = _rect_cell.h - 4
+                }
+            )
+        end
     end
 end
 
@@ -1185,7 +1537,7 @@ while true do
         elseif _event == EVENT_KEYDOWN_ENTER then
             isIronGateOpen = not isIronGateOpen
         elseif _event == EVENT_KEYDOWN_C then
-            -- 如果乔治生命值低于50%，乔治将反击玩家导致玩家跌倒
+            -- 如果乔治生命值低于50%，乔治将击退玩家
             if hp_george < 0.5 * hp_george then
 
 ---------------------------------------------------------------------------------------------------------
@@ -1342,12 +1694,6 @@ while true do
         }
     )
     end
-    
-    -- ***********************************************************
-
-    -- isPlayerOutside = false
-
-    -- ***********************************************************
 
     -- 绘制楼梯图片
     if not isPlayerOutside then
@@ -1452,7 +1798,6 @@ while true do
             }
         )
     end
-    
 
     -- 渲染乔治脚底阴影
     if isPlayerOutside then
@@ -1528,6 +1873,16 @@ while true do
         )
     end
 
+    -- 绘制掉在地上的锁栓
+    if isPlayerOutside and isBoltDropped and (not isGot_Bolt) then
+        CopyTexture(texture_Bolt, {
+            x = 1745 - rect_viewport.x,
+            y = WINDOW_HEIGHT - 65,
+            w = width_image_Bolt,
+            h = height_image_Bolt / 2
+        })
+    end
+
     -- 显示玩家立绘
     if isHidden_player then
         CopyTexture(
@@ -1591,7 +1946,6 @@ while true do
         end
     end
 
-    
     -- 显示乔治死亡状态立绘
     if hp_george <= 0 then
         print("die")

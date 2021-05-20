@@ -108,7 +108,7 @@ end
 --]]
 function Knapsack.RemoveItem(_flag)
     if type(_flag) == "string" then
-        for _, item in pairs(_item_list) do
+        for index, item in pairs(_item_list) do
             if item.name == _flag then 
                 table.remove(_item_list, index)
                 return
